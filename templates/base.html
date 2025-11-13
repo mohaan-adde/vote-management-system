@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}GSU Voting System{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #111827;
+      transition: background-color 0.4s ease, color 0.4s ease;
+    }
+
+    /* Dark Mode Styling */
+    .dark-mode {
+      background-color: #0f172a;
+      color: #f1f5f9;
+    }
+
+    .dark-mode nav, .dark-mode footer {
+      background-color: #1e293b !important;
+    }
+
+    .dark-mode a {
+      color: #93c5fd;
+    }
+
+    .dark-mode .text-gray-700,
+    .dark-mode .text-gray-800,
+    .dark-mode .text-black {
+      color: #f8fafc !important;
+    }
+
+    .dark-mode .bg-white {
+      background-color: #1e293b !important;
+    }
+
+    .dark-mode .bg-gray-100 {
+      background-color: #334155 !important;
+    }
+
+    .dark-mode button,
+    .dark-mode .btn {
+      color: #fff !important;
+    }
+
+    /* Card hover + glow effect */
+    .card {
+      border-radius: 1rem;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.3s ease-in-out;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 20px rgba(96, 165, 250, 0.6);
+    }
+
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .card:hover img {
+      transform: scale(1.05);
+      filter: blur(2px);
+    }
+
+    .card-content {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      padding: 1rem;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      text-align: center;
+      backdrop-filter: blur(4px);
+      transition: all 0.4s ease;
+    }
+
+    /* ✅ Dark mode for all input elements */
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+    background-color: #f3f4f6; /* light gray background */
+    color: black;              /* text inside input is black */
+    border-color: #4b5563;     /* optional: border slightly darker for contrast */
+}
+
+/* Optional: focus state */
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+    outline: none;
+    border-color: #6366f1;    /* Indigo border on focus */
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+
+    .icon {
+      font-size: 1.2rem;
+      transition: transform 0.4s ease;
+    }
+
+    .rotate {
+      transform: rotate(180deg);
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 768px) {
+      .card img {
+        height: 180px;
+      }
+      .card-content {
+        padding: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card img {
+        height: 150px;
+      }
+      .card-content {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col transition-colors duration-500">
+<!-- Navbar -->
+<nav class="bg-indigo-700 text-white shadow-lg transition-colors duration-500 sticky top-0 z-50">
+  <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+    
+    <!-- Logo + Text (la soconaya) -->
+    <a href="/" class="flex items-center space-x-2">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="GSU Logo" class="w-8 h-8">
+      <span class="text-xl font-semibold tracking-wide">GSU Voting System</span>
+    </a>
+
+    <!-- Navigation Links & Dark Mode -->
+    <div class="flex items-center space-x-4 md:space-x-6">
+      {% if session.get('user') and session.get('user') != "admin@gsu.edu" %}
+        <a href="/vote" class="hover:underline">Vote</a>
+        <a href="/logout" class="hover:underline">Logout</a>
+      {% elif session.get('user') and session.get('user') == "admin@gsu.edu" %}
+        <a href="/admin" class="hover:underline">Dashboard</a>
+        <a href="/results" class="hover:underline">Results</a>
+        <a href="/logout" class="hover:underline">Logout</a>
+      {% else %}
+        <a href="/login" class="hover:underline">Login</a>
+        <a href="/register" class="hover:underline">Register</a>
+      {% endif %}
+
+      <!-- Dark Mode Toggle -->
+      <button id="theme-toggle" class="toggle-btn" title="Toggle theme">
+        <span id="theme-icon" class="icon">🌞</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+
+  <!-- Main Content -->
+  <main class="flex-grow container mx-auto px-4 py-8 transition-colors duration-500">
+
+    <!-- Flash Messages -->
+    <div class="max-w-3xl mx-auto mb-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="{% if category == 'error' %}bg-red-100 text-red-700{% elif category == 'warning' %}bg-yellow-100 text-yellow-700{% else %}bg-green-100 text-green-700{% endif %} p-3 mb-4 rounded text-center shadow">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+    {% block content %}
+    <!-- Voting Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+      <!-- Example Candidate Card -->
+      <div class="card relative">
+        <img src="https://via.placeholder.com/400x200">
+        <div class="card-content">
+          <div class="text-xl font-bold">XO</div>
+          <div class="font-semibold">Xoriyo</div>
+          <p class="italic">"i dooro sxb plz"</p>
+          <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mt-2">Vote</button>
+        </div>
+      </div>
+
+      <div class="card relative">
+        <img src="https://via.placeholder.com/400x200" alt="XA">
+        <div class="card-content">
+          <div class="text-xl font-bold">XA</div>
+          <div class="font-semibold">Xaad Media</div>
+          <p class="italic">"waxan ahey reer jalamed i dooro plz"</p>
+          <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mt-2">Vote</button>
+        </div>
+      </div>
+
+      <!-- Winner Card Example -->
+      <div class="card relative border-2 border-yellow-400">
+        <img src="https://via.placeholder.com/400x200" alt="Winner">
+        <div class="card-content">
+          <div class="text-xl font-bold">Hambalyo!</div>
+          <div class="font-semibold">Mohamed Said</div>
+          <p class="italic">Qofka ugu codka badan</p>
+        </div>
+      </div>
+
+    </div>
+    {% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-indigo-700 text-white text-center py-3 mt-8 transition-colors duration-500">
+    <p class="text-sm">&copy; {{ current_year or 2025 }} GSU Voting System. All Rights Reserved.</p>
+  </footer>
+
+  <!-- JS Theme Toggle -->
+  <script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const body = document.body;
+
+    if (localStorage.getItem('theme') === 'dark') {
+      body.classList.add('dark-mode');
+      themeIcon.textContent = '🌙';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      themeIcon.classList.add('rotate');
+
+      setTimeout(() => themeIcon.classList.remove('rotate'), 400);
+
+      if (body.classList.contains('dark-mode')) {
+        themeIcon.textContent = '🌙';
+        localStorage.setItem('theme', 'dark');
+      } else {
+        themeIcon.textContent = '🌞';
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  </script>
+</body>
+</html>

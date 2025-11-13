@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-3xl font-bold text-center mb-6 dark-mode:text-white">Admin Dashboard</h2>
+
+<!-- Add Candidate Button -->
+<div class="flex justify-center mb-4">
+    <button id="showFormBtn" 
+            class="px-4 py-2 rounded-lg text-white shadow-lg transition-colors duration-500
+                   bg-purple-600 hover:bg-purple-700 dark-mode:bg-indigo-700 dark-mode:hover:bg-indigo-800">
+        Add Candidate
+    </button>
+</div>
+
+
+<!-- Candidate Form -->
+<div id="candidateForm" class="hidden bg-white dark-mode:bg-gray-800 p-4 rounded shadow mb-6 max-w-xl mx-auto transition-colors">
+    <form action="/admin" method="POST" class="flex flex-col gap-3">
+        <!-- Candidate Name -->
+        <input name="name" placeholder="Candidate Name" 
+               class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" required>
+        
+        <!-- Motto / Slogan -->
+        <input name="motto" placeholder="Motto / Slogan" 
+               class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" required>
+        
+        <!-- Photo URL -->
+        <input name="photo" placeholder="Photo URL (optional)" 
+               class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300">
+        
+        <!-- Save Button -->
+        <button class="bg-indigo-700 text-white shadow-lg px-4 py-2 rounded-lg transition-colors duration-500 hover:bg-indigo-800">
+            Save Candidate
+        </button>
+    </form>
+</div>
+
+
+<!-- Candidates Table -->
+<h3 class="text-2xl font-semibold mb-3 text-center dark-mode:text-white">Candidates</h3>
+<div class="overflow-x-auto">
+    <table class="w-full bg-white dark-mode:bg-gray-800 rounded shadow mb-8 min-w-max">
+        <thead class="bg-indigo-700 text-white">
+            <tr>
+                <th class="p-2">Photo</th>
+                <th class="p-2">Name</th>
+                <th class="p-2">Slogan</th>
+                <th class="p-2">Votes</th>
+                <th class="p-2">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in candidates %}
+            <tr class="border-b dark-mode:border-gray-600">
+                <!-- Photo -->
+                <td class="p-2">
+                    {% if c.photo %}
+                    <img src="{{ c.photo }}" alt="{{ c.name }}" class="w-16 h-16 object-cover rounded-full">
+                    {% else %}
+                    <img src="https://placehold.co/150x150/003049/ffffff?text={{ c.name[0:2]|upper }}" 
+                         alt="Placeholder" class="w-16 h-16 object-cover rounded-full">
+                    {% endif %}
+                </td>
+
+                <!-- Edit Form -->
+                <form action="/admin/edit/{{ c.id }}" method="POST" class="flex items-center w-full">
+                    <!-- Name -->
+                    <td class="p-2">
+                        <input type="text" name="name" value="{{ c.name }}" 
+                               class="border p-1 rounded w-full bg-gray-100 dark-mode:bg-gray-700 text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-600" required>
+                    </td>
+
+                    <!-- Slogan -->
+                    <td class="p-2">
+                        <input type="text" name="motto" value="{{ c.motto }}" 
+                               class="border p-1 rounded w-full bg-gray-100 dark-mode:bg-gray-700 text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-600" required>
+                    </td>
+
+                    <!-- Votes -->
+                    <td class="p-2 text-center dark-mode:text-white">{{ c.votes }}</td>
+
+                    <!-- Actions -->
+              <td class="p-2 flex gap-2 justify-center">
+    <!-- Edit Button -->
+    <button type="submit"
+        class="bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white px-2 py-1 rounded hover:bg-yellow-600 dark:hover:bg-yellow-700 transition-colors">
+        Edit
+    </button>
+
+    <!-- Delete Button -->
+    <a href="/admin/delete/{{ c.id }}"
+       class="bg-red-500 text-white dark:bg-red-600 dark:text-white-900 px-2 py-1 rounded hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
+       onclick="return confirm('Are you sure you want to delete this candidate?')">
+        Delete
+    </a>
+</td>
+
+                </form>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+<!-- Users Who Voted -->
+<h3 class="text-2xl font-semibold mb-3 text-center dark-mode:text-white">Users Who Voted</h3>
+<div class="overflow-x-auto">
+    <table class="w-full bg-white dark-mode:bg-gray-800 rounded shadow min-w-max">
+        <thead class="bg-indigo-700 text-white">
+            <tr>
+                <th class="p-2">Email</th>
+                <th class="p-2">Candidate Voted</th>
+                <th class="p-2">Voted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in voters %}
+            <tr class="border-b dark-mode:border-gray-600 dark-mode:text-white">
+                <td class="p-2">{{ u.user_email }}</td>
+                <td class="p-2">{{ u.candidate_name }}</td>
+                <td class="p-2">{{ u.voted_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const btn = document.getElementById('showFormBtn');
+    const form = document.getElementById('candidateForm');
+    btn.addEventListener('click', () => form.classList.toggle('hidden'));
+</script>
+{% endblock %}
