@@ -19,54 +19,87 @@
     {% endif %}
 
     <form method="POST" action="/register">
+        <!-- Full Name -->
         <div class="mb-4">
             <label for="name" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Full Name</label>
             <input 
                 type="text" 
                 id="name" 
                 name="name"
-               
                 class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
                 required
             >
         </div>
 
+        <!-- Email -->
         <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Email</label>
             <input 
                 type="email" 
                 id="email" 
                 name="email"
-                
                 class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
                 required
             >
         </div>
 
-        <div class="mb-4">
+        <!-- Password -->
+        <div class="mb-4 relative">
             <label for="password" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Password</label>
-            <input 
-                type="password" 
-                id="password" 
-                name="password"
-               
-                class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                required
-            >
+            <div class="relative">
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password"
+                    class="w-full pr-10 border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
+                    required
+                >
+                <!-- Eye toggle -->
+                <button type="button" id="togglePassword" 
+                    class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 dark-mode:text-gray-200">
+                    <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.956 9.956 0 012.223-3.383M6.1 6.1A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-1.57 3.043M3 3l18 18" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
-        <div class="mb-6">
+        <!-- Confirm Password -->
+        <div class="mb-6 relative">
             <label for="confirm_password" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Ku celi Password-ka</label>
-            <input 
-                type="password" 
-                id="confirm_password" 
-                name="confirm_password"
-                
-                class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                required
-            >
+            <div class="relative">
+                <input 
+                    type="password" 
+                    id="confirm_password" 
+                    name="confirm_password"
+                    class="w-full pr-10 border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
+                    required
+                >
+                <!-- Eye toggle -->
+                <button type="button" id="toggleConfirmPassword" 
+                    class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 dark-mode:text-gray-200">
+                    <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.956 9.956 0 012.223-3.383M6.1 6.1A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-1.57 3.043M3 3l18 18" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
+        <!-- Submit -->
         <button 
             type="submit" 
             class="w-full py-2 px-4 bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-800 dark-mode:bg-indigo-600 dark-mode:hover:bg-indigo-700 transition duration-200"
@@ -81,4 +114,31 @@
         </p>
     </div>
 </div>
+
+<!-- Show/Hide Password Script -->
+<script>
+    function toggleVisibility(inputId, eyeOpenId, eyeClosedId) {
+        const input = document.getElementById(inputId);
+        const eyeOpen = document.getElementById(eyeOpenId);
+        const eyeClosed = document.getElementById(eyeClosedId);
+
+        if (input.type === "password") {
+            input.type = "text";
+            eyeOpen.classList.add("hidden");
+            eyeClosed.classList.remove("hidden");
+        } else {
+            input.type = "password";
+            eyeOpen.classList.remove("hidden");
+            eyeClosed.classList.add("hidden");
+        }
+    }
+
+    document.getElementById("togglePassword").addEventListener("click", () => {
+        toggleVisibility("password", "eyeOpen1", "eyeClosed1");
+    });
+
+    document.getElementById("toggleConfirmPassword").addEventListener("click", () => {
+        toggleVisibility("confirm_password", "eyeOpen2", "eyeClosed2");
+    });
+</script>
 {% endblock %}
