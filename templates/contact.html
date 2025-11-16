@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Contact Us | GSU Voting{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+  <div class="mb-8 text-center">
+    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-200 text-xs font-medium text-blue-700 bg-blue-50">
+      <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
+      Let's create something amazing
+    </span>
+    <h1 class="mt-4 text-3xl md:text-4xl font-extrabold text-slate-900 dark-mode:text-white">Get in touch</h1>
+    <p class="mt-2 text-sm md:text-base text-slate-600 dark-mode:text-slate-300 max-w-2xl mx-auto">
+      Have questions about the voting system, your account, or upcoming elections? We're here to help you succeed.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+    <!-- Left: message form -->
+    <div class="bg-white dark-mode:bg-gray-800 rounded-2xl shadow-sm border border-slate-100 dark-mode:border-slate-700 p-6 space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900 dark-mode:text-white">Send us a message</h2>
+      <p class="text-sm text-slate-600 dark-mode:text-slate-300">
+        Fill out the form below and we'll get back to you as soon as possible.
+      </p>
+
+      <form action="mailto:amiirsaadiq03@gmail.com" method="post" enctype="text/plain" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark-mode:text-slate-300 mb-1">Full name</label>
+            <input type="text" name="name" placeholder="John Doe" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark-mode:text-slate-300 mb-1">Phone number</label>
+            <input type="text" name="phone" placeholder="+252 907 918 702" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark-mode:text-slate-300 mb-1">Email</label>
+          <input type="email" name="email" placeholder="amiirsaadiq03@gmail.com" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark-mode:text-slate-300 mb-1">About</label>
+          <input type="text" name="subject" placeholder="What's this regarding?" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark-mode:text-slate-300 mb-1">Message</label>
+          <textarea name="message" rows="4" placeholder="Tell us more about your inquiry..." class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <button type="submit" class="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 text-white text-sm font-semibold py-2.5 shadow-sm hover:bg-blue-700 transition-colors">
+          Send message
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Right: other ways to connect -->
+    <div class="space-y-4">
+      <h2 class="text-lg font-semibold text-slate-900 dark-mode:text-white">Other ways to connect</h2>
+      <p class="text-sm text-slate-600 dark-mode:text-slate-300">Choose the method that works best for you.</p>
+
+      <div class="space-y-3">
+        <!-- Email card -->
+        <a href="mailto:amiirsaadiq03@gmail.com" class="group flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white shadow-sm dark-mode:bg-gray-800 dark-mode:border-slate-700 transition-transform hover:-translate-y-0.5 hover:shadow-md">
+          <div class="flex items-start gap-3">
+            <div class="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-2 8H5a2 2 0 01-2-2V8a2 2 0 012-2h14a2 2 0 012 2v6a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-900 dark-mode:text-white">Email support</p>
+              <p class="text-xs text-slate-500 dark-mode:text-slate-400">Get a response within 24 hours</p>
+              <p class="mt-1 text-sm text-blue-600">amiirsaadiq03@gmail.com</p>
+            </div>
+          </div>
+          <span class="text-slate-400 group-hover:text-blue-500 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+
+        <!-- WhatsApp card -->
+        <a href="https://wa.me/252907918702" target="_blank" rel="noopener" class="group flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white shadow-sm dark-mode:bg-gray-800 dark-mode:border-slate-700 transition-transform hover:-translate-y-0.5 hover:shadow-md">
+          <div class="flex items-start gap-3">
+            <div class="h-9 w-9 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center group-hover:scale-110 group-hover:bg-[#25D366]/20 transition-transform">
+              <!-- WhatsApp logo -->
+              <svg class="w-5 h-5" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+                <path d="M16.04 3A12.94 12.94 0 003 15.96 12.8 12.8 0 004.92 22L3 29l7.17-1.88A13.02 13.02 0 0016.04 29C23.22 29 29 23.25 29 16.08 29 8.89 23.22 3 16.04 3zm0 2.4c5.74 0 10.5 4.68 10.5 10.68 0 5.97-4.76 10.68-10.5 10.68-1.77 0-3.5-.45-5.04-1.32l-.36-.2-4.26 1.12 1.13-4.14-.23-.38A10.21 10.21 0 015.54 16C5.54 10.08 10.3 5.4 16.04 5.4z"/>
+                <path d="M12.8 10.86c-.27-.62-.55-.63-.8-.64h-.68c-.23 0-.6.09-.92.45-.32.36-1.2 1.17-1.2 2.85 0 1.68 1.23 3.3 1.4 3.53.17.23 2.37 3.74 5.84 5.09 2.89 1.14 3.48.91 4.11.85.63-.06 2.02-.82 2.3-1.62.28-.8.28-1.49.2-1.63-.09-.14-.32-.23-.68-.4-.36-.17-2.14-1.05-2.47-1.17-.32-.11-.56-.17-.8.17-.23.34-.92 1.17-1.13 1.41-.21.23-.41.26-.77.09-.36-.17-1.51-.56-2.87-1.79-1.06-.94-1.78-2.1-1.99-2.45-.21-.34-.02-.53.15-.7.16-.15.36-.4.53-.6.17-.2.23-.34.35-.57.12-.23.06-.43-.02-.6-.08-.17-.71-1.77-.98-2.39z"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-900 dark-mode:text-white">WhatsApp chat</p>
+              <p class="text-xs text-slate-500 dark-mode:text-slate-400">Quick response on WhatsApp</p>
+              <p class="mt-1 text-sm text-blue-600">+252 907 918 702</p>
+            </div>
+          </div>
+          <span class="text-slate-400 group-hover:text-blue-500 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </span>
+        </a>
+
+        <!-- Virtual office card -->
+        <div class="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-white shadow-sm dark-mode:bg-gray-800 dark-mode:border-slate-700">
+          <div class="flex items-start gap-3">
+            <div class="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1112 6a2.5 2.5 0 010 5.5z"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-900 dark-mode:text-white">Virtual office</p>
+              <p class="text-xs text-slate-500 dark-mode:text-slate-400">Connect with us online</p>
+              <p class="mt-1 text-sm text-blue-600">Always available during elections</p>
+            </div>
+          </div>
+          <span class="text-slate-400">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

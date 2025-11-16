@@ -8,6 +8,11 @@ import time
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
 
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+# For the browser we should use the public anon key. If you currently only
+# have SUPABASE_KEY set, ensure it is an anon key before exposing it.
+SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", os.getenv("SUPABASE_KEY", ""))
+
 # Storage bucket for candidate photos (create this bucket in Supabase and make it public)
 BUCKET_NAME = os.getenv("CANDIDATE_BUCKET", "candidate-photos")
 
@@ -172,41 +177,29 @@ def forgot_password():
             flash("Please enter your email address.", "warning")
             return redirect(url_for("forgot_password"))
         try:
+            # Real flow: Supabase sends reset email, then redirects back to our
+            # /update-password page where the user will set a new password.
             redirect_url = url_for("update_password", _external=True)
             supabase.auth.reset_password_for_email(email, options={"redirect_to": redirect_url})
-            flash("If that email exists, a password reset link has been sent.", "info")
+            flash("If that email exists, a password reset link has been sent. Open it to set a new password.", "info")
         except Exception as e:
             flash("Could not send password reset email. Please try again later.", "error")
         return redirect(url_for("login"))
     return render_template("reset_password.html")
 
 
-@app.route("/update-password", methods=["GET", "POST"])
+@app.route("/update-password", methods=["GET"])
 def update_password():
-    """Handle password update after the user clicks the email reset link.
+    """Password reset landing page after clicking the email link.
 
-    Supabase will create a session for the user in the browser when they
-    open the reset link. Here we just ask for a new password and send it
-    to Supabase.
+    Supabase JS on the frontend will read the recovery token from the URL
+    and call updateUser with the new password.
     """
-    if request.method == "POST":
-        new_password = request.form.get("password", "").strip()
-        confirm = request.form.get("confirm_password", "").strip()
-        if not new_password or not confirm:
-            flash("Please fill in both password fields.", "warning")
-            return redirect(url_for("update_password"))
-        if new_password != confirm:
-            flash("Passwords do not match.", "error")
-            return redirect(url_for("update_password"))
-        try:
-            supabase.auth.update_user({"password": new_password})
-            flash("Your password has been updated. You can now log in.", "success")
-            return redirect(url_for("login"))
-        except Exception:
-            flash("Could not update password. The reset link may have expired.", "error")
-            return redirect(url_for("login"))
-
-    return render_template("update_password.html")
+    return render_template(
+        "update_password.html",
+        supabase_url=SUPABASE_URL,
+        supabase_anon_key=SUPABASE_ANON_KEY,
+    )
 
 # -------------------- LOGOUT --------------------
 @app.route("/logout")
@@ -224,6 +217,12 @@ def logout():
 @app.route("/pending")
 def pending_verification():
     return render_template("pending_verification.html")
+
+
+# -------------------- CONTACT --------------------
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
 
 # -------------------- VOTING --------------------
 @app.route("/vote")
