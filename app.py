@@ -96,7 +96,12 @@ def home():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        # Support either a single full name field or separate first/last name fields
+        first_name = request.form.get("first_name", "").strip()
+        last_name = request.form.get("last_name", "").strip()
         name = request.form.get("name", "").strip()
+        if not name:
+            name = (first_name + " " + last_name).strip()
         university_id = request.form.get("university_id", "").strip()
         email = request.form["email"]
         password = request.form["password"]
@@ -157,6 +162,23 @@ def login():
                 flash("Login failed. Check your internet or Supabase setup.", "error")
         return redirect(url_for("login"))
     return render_template("login.html")
+
+# -------------------- FORGOT PASSWORD --------------------
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email", "").strip()
+        if not email:
+            flash("Please enter your email address.", "warning")
+            return redirect(url_for("forgot_password"))
+        try:
+            redirect_url = url_for("login", _external=True)
+            supabase.auth.reset_password_for_email(email, options={"redirect_to": redirect_url})
+            flash("If that email exists, a password reset link has been sent.", "info")
+        except Exception as e:
+            flash("Could not send password reset email. Please try again later.", "error")
+        return redirect(url_for("login"))
+    return render_template("reset_password.html")
 
 # -------------------- LOGOUT --------------------
 @app.route("/logout")
@@ -274,6 +296,10 @@ def admin_dashboard():
             name = request.form["name"].strip()
             motto = request.form["motto"].strip()
             photo = request.form.get("photo", "").strip()
+            bio = request.form.get("bio", "").strip()
+            department = request.form.get("department", "").strip()
+            year_level = request.form.get("year_level", "").strip()
+            manifesto = request.form.get("manifesto", "").strip()
 
             # Try upload to Supabase Storage if a file is provided
             file = request.files.get("photo_file")
@@ -282,7 +308,8 @@ def admin_dashboard():
                     ext = os.path.splitext(file.filename)[1].lower()
                     fname = f"candidate_{int(time.time())}_{secure_filename(name)}{ext}"
                     file_bytes = file.read()
-                    supabase.storage.from_(BUCKET_NAME).upload(path=fname, file=file_bytes, file_options={"content-type": file.mimetype, "upsert": True})
+                    print("[ADD_CANDIDATE] Uploading photo to bucket", BUCKET_NAME, "as", fname)
+                    supabase.storage.from_(BUCKET_NAME).upload(fname, file_bytes, {"content-type": file.mimetype, "upsert": True})
                     public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(fname)
                     if isinstance(public_url, dict):
                         data = public_url.get("data") or {}
@@ -299,21 +326,33 @@ def admin_dashboard():
                         base = os.getenv("SUPABASE_URL", "").rstrip("/")
                         if base:
                             photo = f"{base}/storage/v1/object/public/{BUCKET_NAME}/{fname}"
-                except Exception:
-                    pass
+                    if not photo:
+                        flash("Photo uploaded but public URL could not be determined.", "warning")
+                        print("[ADD_CANDIDATE] Could not determine public URL from", public_url)
+                except Exception as e:
+                    flash("Failed to upload candidate photo to Supabase. Check server logs.", "error")
+                    print("[ADD_CANDIDATE] Error uploading photo:", repr(e))
 
             if not photo:
                 photo = f"https://placehold.co/150x150/003049/ffffff?text={name[0:2].upper()}"
             try:
-                supabase.table("candidates").insert({
+                insert_payload = {
                     "name": name,
                     "motto": motto,
                     "photo": photo,
-                    "votes": 0
-                }).execute()
+                    "bio": bio,
+                    "department": department,
+                    "year_level": year_level,
+                    "manifesto": manifesto,
+                    "votes": 0,
+                }
+                print("[ADD_CANDIDATE] Inserting candidate:", insert_payload)
+                result = supabase.table("candidates").insert(insert_payload).execute()
+                print("[ADD_CANDIDATE] Insert result:", getattr(result, "data", result))
                 flash("Candidate added successfully!", "success")
             except Exception as e:
                 flash(f"Could not add candidate: {str(e)}", "error")
+                print("[ADD_CANDIDATE] Error inserting candidate:", repr(e))
             return redirect(url_for("admin_dashboard"))
 
         if action == "update_settings":
@@ -384,17 +423,62 @@ def edit_candidate(candidate_id):
     name = request.form["name"].strip()
     motto = request.form["motto"].strip()
     photo = request.form.get("photo", "").strip()
+    bio = request.form.get("bio", "").strip()
+    department = request.form.get("department", "").strip()
+    year_level = request.form.get("year_level", "").strip()
+    manifesto = request.form.get("manifesto", "").strip()
+
+    file = request.files.get("photo_file")
+    if file and file.filename:
+        try:
+            ext = os.path.splitext(file.filename)[1].lower()
+            fname = f"candidate_{int(time.time())}_{secure_filename(name)}{ext}"
+            file_bytes = file.read()
+            print("[EDIT_CANDIDATE] Uploading photo to bucket", BUCKET_NAME, "as", fname)
+            supabase.storage.from_(BUCKET_NAME).upload(fname, file_bytes, {"content-type": file.mimetype, "upsert": True})
+            public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(fname)
+            if isinstance(public_url, dict):
+                data = public_url.get("data") or {}
+                photo = (
+                    data.get("publicUrl")
+                    or public_url.get("publicUrl")
+                    or public_url.get("public_url")
+                    or photo
+                )
+            elif isinstance(public_url, str):
+                photo = public_url
+            if not photo:
+                base = os.getenv("SUPABASE_URL", "").rstrip("/")
+                if base:
+                    photo = f"{base}/storage/v1/object/public/{BUCKET_NAME}/{fname}"
+            if not photo:
+                flash("Photo uploaded but public URL could not be determined.", "warning")
+                print("[EDIT_CANDIDATE] Could not determine public URL from", public_url)
+        except Exception as e:
+            flash("Failed to upload candidate photo to Supabase. Check server logs.", "error")
+            print("[EDIT_CANDIDATE] Error uploading photo:", repr(e))
+
     if not photo:
         photo = f"https://placehold.co/150x150/003049/ffffff?text={name[0:2].upper()}"
+
+    update_data = {
+        "name": name,
+        "motto": motto,
+        "photo": photo,
+        "bio": bio,
+        "department": department,
+        "year_level": year_level,
+        "manifesto": manifesto,
+    }
+
     try:
-        supabase.table("candidates").update({
-            "name": name,
-            "motto": motto,
-            "photo": photo
-        }).eq("id", candidate_id).execute()
+        print(f"[EDIT_CANDIDATE] Updating candidate {candidate_id} with:", update_data)
+        result = supabase.table("candidates").update(update_data).eq("id", candidate_id).execute()
+        print("[EDIT_CANDIDATE] Update result:", getattr(result, "data", result))
         flash("Candidate updated successfully!", "success")
     except Exception as e:
         flash(f"Could not update candidate: {str(e)}", "error")
+        print("[EDIT_CANDIDATE] Error updating candidate:", repr(e))
     return redirect(url_for("admin_dashboard"))
 
 

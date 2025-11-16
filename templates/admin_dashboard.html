@@ -24,6 +24,22 @@
         <!-- Motto / Slogan -->
         <input name="motto" placeholder="Motto / Slogan" 
                class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" required>
+
+        <!-- Bio -->
+        <textarea name="bio" rows="2" placeholder="Short bio (optional)" 
+                  class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300"></textarea>
+
+        <!-- Department & Year Level -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <input name="department" placeholder="Department (optional)" 
+                 class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300">
+          <input name="year_level" placeholder="Year level (e.g. 2nd Year)" 
+                 class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300">
+        </div>
+
+        <!-- Manifesto -->
+        <textarea name="manifesto" rows="3" placeholder="Key points / manifesto (optional)" 
+                  class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300"></textarea>
         
         <!-- Photo URL -->
         <input name="photo" placeholder="Photo URL (optional)" 
@@ -69,44 +85,95 @@
                     {% endif %}
                 </td>
 
-                <!-- Edit Form -->
-                <form action="/admin/edit/{{ c.id }}" method="POST" class="flex items-center w-full">
-                    <!-- Name -->
-                    <td class="p-2">
-                        <input type="text" name="name" value="{{ c.name }}" 
-                               class="border p-1 rounded w-full bg-gray-100 dark-mode:bg-gray-700 text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-600" required>
-                    </td>
+                <!-- Name -->
+                <td class="p-2">{{ c.name }}</td>
 
-                    <!-- Slogan -->
-                    <td class="p-2">
-                        <input type="text" name="motto" value="{{ c.motto }}" 
-                               class="border p-1 rounded w-full bg-gray-100 dark-mode:bg-gray-700 text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-600" required>
-                    </td>
+                <!-- Slogan -->
+                <td class="p-2">{{ c.motto }}</td>
 
-                    <!-- Votes -->
-                    <td class="p-2 text-center dark-mode:text-white">{{ c.votes }}</td>
+                <!-- Votes -->
+                <td class="p-2 text-center dark-mode:text-white">{{ c.votes }}</td>
 
-                    <!-- Actions -->
-              <td class="p-2 flex gap-2 justify-center">
-    <!-- Edit Button -->
-    <button type="submit"
-        class="bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white px-2 py-1 rounded hover:bg-yellow-600 dark:hover:bg-yellow-700 transition-colors">
-        Edit
-    </button>
+                <!-- Actions -->
+                <td class="p-2 flex gap-2 justify-center">
+                    <!-- Edit Button opens modal -->
+                    <button type="button"
+                            class="edit-candidate-btn bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white px-2 py-1 rounded hover:bg-yellow-600 dark:hover:bg-yellow-700 transition-colors"
+                            data-id="{{ c.id }}"
+                            data-name="{{ c.name }}"
+                            data-motto="{{ c.motto }}"
+                            data-photo="{{ c.photo }}"
+                            data-bio="{{ c.bio or '' }}"
+                            data-department="{{ c.department or '' }}"
+                            data-year_level="{{ c.year_level or '' }}"
+                            data-manifesto="{{ c.manifesto or '' }}">
+                        Edit
+                    </button>
 
-    <!-- Delete Button -->
-    <a href="/admin/delete/{{ c.id }}"
-       class="bg-red-500 text-white dark:bg-red-600 dark:text-white-900 px-2 py-1 rounded hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
-       onclick="return confirm('Are you sure you want to delete this candidate?')">
-        Delete
-    </a>
-</td>
-
-                </form>
+                    <!-- Delete Button -->
+                    <a href="/admin/delete/{{ c.id }}"
+                       class="bg-red-500 text-white dark:bg-red-600 dark:text-white-900 px-2 py-1 rounded hover:bg-red-600 dark:hover:bg-red-700 transition-colors"
+                       onclick="return confirm('Are you sure you want to delete this candidate?')">
+                        Delete
+                    </a>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+</div>
+
+
+<!-- Edit Candidate Modal -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40">
+  <div class="bg-white dark-mode:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-4 relative">
+    <button id="editModalClose" type="button" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+    <h3 class="text-xl font-semibold mb-3 dark-mode:text-white">Edit Candidate</h3>
+    <form id="editModalForm" action="" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
+      <input type="hidden" name="photo" id="edit_photo">
+
+      <!-- Name -->
+      <input type="text" name="name" id="edit_name" 
+             class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" required>
+
+      <!-- Motto -->
+      <input type="text" name="motto" id="edit_motto" 
+             class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" required>
+
+      <!-- Bio -->
+      <textarea name="bio" id="edit_bio" rows="2" 
+                class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" placeholder="Short bio (optional)"></textarea>
+
+      <!-- Department & Year Level -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input name="department" id="edit_department" placeholder="Department (optional)" 
+               class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300">
+        <input name="year_level" id="edit_year_level" placeholder="Year level (optional)" 
+               class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300">
+      </div>
+
+      <!-- Manifesto -->
+      <textarea name="manifesto" id="edit_manifesto" rows="3" 
+                class="border p-2 rounded-lg bg-white dark-mode:bg-white text-black dark-mode:text-black border-gray-300 dark-mode:border-gray-300" placeholder="Key points / manifesto (optional)"></textarea>
+
+      <!-- Current Photo Preview -->
+      <div class="flex items-center gap-3">
+        <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200 flex items-center justify-center">
+          <img id="edit_photo_preview" src="" alt="Preview" class="w-full h-full object-cover hidden">
+          <span id="edit_photo_placeholder" class="text-xs text-gray-500">No photo</span>
+        </div>
+        <div class="flex-1">
+          <label class="block text-sm mb-1 dark-mode:text-white">Upload New Photo (optional)</label>
+          <input type="file" name="photo_file" accept="image/*" class="w-full text-sm" />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 mt-2">
+        <button type="button" id="editModalCancel" class="px-3 py-2 rounded bg-gray-300 text-gray-800 hover:bg-gray-400">Cancel</button>
+        <button type="submit" class="px-4 py-2 rounded bg-indigo-700 text-white hover:bg-indigo-800">Save Changes</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 
@@ -241,5 +308,71 @@
       tick();
       setInterval(tick, 1000);
     })();
+
+    // Edit candidate modal logic
+    const editButtons = document.querySelectorAll('.edit-candidate-btn');
+    const editModal = document.getElementById('editModal');
+    const editForm = document.getElementById('editModalForm');
+    const editClose = document.getElementById('editModalClose');
+    const editCancel = document.getElementById('editModalCancel');
+    const editName = document.getElementById('edit_name');
+    const editMotto = document.getElementById('edit_motto');
+    const editPhoto = document.getElementById('edit_photo');
+    const editBio = document.getElementById('edit_bio');
+    const editDept = document.getElementById('edit_department');
+    const editYear = document.getElementById('edit_year_level');
+    const editManifesto = document.getElementById('edit_manifesto');
+    const editPreview = document.getElementById('edit_photo_preview');
+    const editPlaceholder = document.getElementById('edit_photo_placeholder');
+
+    function openEditModal(data) {
+      editForm.action = `/admin/edit/${data.id}`;
+      editName.value = data.name || '';
+      editMotto.value = data.motto || '';
+      editPhoto.value = data.photo || '';
+      editBio.value = data.bio || '';
+      editDept.value = data.department || '';
+      editYear.value = data.year_level || '';
+      editManifesto.value = data.manifesto || '';
+
+      if (data.photo) {
+        editPreview.src = data.photo;
+        editPreview.classList.remove('hidden');
+        editPlaceholder.classList.add('hidden');
+      } else {
+        editPreview.src = '';
+        editPreview.classList.add('hidden');
+        editPlaceholder.classList.remove('hidden');
+      }
+
+      editModal.classList.remove('hidden');
+      editModal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+      editModal.classList.add('hidden');
+      editModal.classList.remove('flex');
+    }
+
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        openEditModal({
+          id: btn.dataset.id,
+          name: btn.dataset.name,
+          motto: btn.dataset.motto,
+          photo: btn.dataset.photo,
+          bio: btn.dataset.bio,
+          department: btn.dataset.department,
+          year_level: btn.dataset.year_level,
+          manifesto: btn.dataset.manifesto,
+        });
+      });
+    });
+
+    if (editClose) editClose.addEventListener('click', closeEditModal);
+    if (editCancel) editCancel.addEventListener('click', closeEditModal);
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeEditModal();
+    });
 </script>
 {% endblock %}

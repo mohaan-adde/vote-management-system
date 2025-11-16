@@ -39,13 +39,23 @@
         </div>
         {% endif %}
 
-        {% if c.photo %}
-          <img src="{{ c.photo }}" alt="{{ c.name }}" class="w-32 h-32 object-cover mx-auto rounded-full mb-4 ring-4 {{ ring }}">
-        {% else %}
-          <div class="w-32 h-32 bg-gray-200 dark-mode:bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 dark-mode:text-gray-200 ring-4 {{ ring }}">
-            {{ c.name[0:2]|upper }}
-          </div>
-        {% endif %}
+        <!-- Read more arrow button -->
+        <button type="button"
+                class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 transition-colors read-more-btn"
+                aria-label="Read more about {{ c.name }}"
+                data-name="{{ c.name }}"
+                data-motto="{{ c.motto }}"
+                data-bio="{{ c.bio or '' }}"
+                data-department="{{ c.department or '' }}"
+                data-year_level="{{ c.year_level or '' }}"
+                data-manifesto="{{ c.manifesto or '' }}">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {% set photo_url = c.photo or ('https://placehold.co/150x150/003049/ffffff?text=' ~ (c.name[0:2]|upper)) %}
+        <img src="{{ photo_url }}" alt="{{ c.name }}" class="w-32 h-32 object-cover mx-auto rounded-full mb-4 ring-4 {{ ring }}">
 
         <h3 class="text-xl font-bold text-white-900 dark-mode:text-white">{{ c.name }}</h3>
         <p class="italic mb-3 text-yellow-600 dark-mode:text-yellow-400">"{{ c.motto }}"</p>
@@ -83,4 +93,69 @@
   })();
 </script>
 {% endif %}
+
+<!-- Read more modal -->
+<div id="candidateModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-40">
+  <div class="bg-white dark-mode:bg-gray-800 rounded-lg shadow-xl max-w-lg w-full p-6 relative">
+    <button id="candidateModalClose" type="button" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700">&times;</button>
+    <h3 id="modal_name" class="text-2xl font-bold mb-1 dark-mode:text-white"></h3>
+    <p id="modal_motto" class="italic mb-3 text-yellow-600 dark-mode:text-yellow-400"></p>
+    <div class="space-y-1 text-sm dark-mode:text-white">
+      <p id="modal_bio"></p>
+      <p id="modal_department"></p>
+      <p id="modal_year"></p>
+      <p id="modal_manifesto"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Read more modal logic
+  (function(){
+    const buttons = document.querySelectorAll('.read-more-btn');
+    const modal = document.getElementById('candidateModal');
+    const closeBtn = document.getElementById('candidateModalClose');
+    const nameEl = document.getElementById('modal_name');
+    const mottoEl = document.getElementById('modal_motto');
+    const bioEl = document.getElementById('modal_bio');
+    const deptEl = document.getElementById('modal_department');
+    const yearEl = document.getElementById('modal_year');
+    const manEl = document.getElementById('modal_manifesto');
+
+    function openModal(data){
+      nameEl.textContent = data.name || '';
+      mottoEl.textContent = data.motto ? `"${data.motto}"` : '';
+      bioEl.textContent = data.bio ? `Bio: ${data.bio}` : '';
+      deptEl.textContent = data.department ? `Department: ${data.department}` : '';
+      yearEl.textContent = data.year_level ? `Year: ${data.year_level}` : '';
+      manEl.textContent = data.manifesto ? `Manifesto: ${data.manifesto}` : '';
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal(){
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        openModal({
+          name: btn.dataset.name,
+          motto: btn.dataset.motto,
+          bio: btn.dataset.bio,
+          department: btn.dataset.department,
+          year_level: btn.dataset.year_level,
+          manifesto: btn.dataset.manifesto,
+        });
+      });
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  })();
+</script>
 {% endblock %}

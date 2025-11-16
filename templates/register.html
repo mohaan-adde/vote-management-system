@@ -3,130 +3,154 @@
 {% block title %}Register | GSU Voting{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white dark-mode:bg-gray-800 p-8 rounded-2xl shadow-lg transition-colors duration-500">
-    <h2 class="text-2xl font-bold text-center text-indigo-700 dark-mode:text-indigo-400 mb-6">Register</h2>
+<div class="max-w-2xl mx-auto bg-white dark-mode:bg-gray-800 p-8 md:p-10 rounded-3xl shadow-lg transition-colors duration-500">
+  <a href="{{ url_for('home') }}" class="inline-flex items-center text-sm text-gray-500 dark-mode:text-gray-300 hover:text-indigo-600 dark-mode:hover:text-indigo-400 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+    </svg>
+    <span>Back to home</span>
+  </a>
 
-    {% if message %}
-        <div class="mb-4 p-3 rounded text-center 
-            {% if category == 'error' %}
-                bg-red-100 dark-mode:bg-red-700 text-red-700 dark-mode:text-white
-            {% else %}
-                bg-green-100 dark-mode:bg-green-700 text-green-700 dark-mode:text-white
-            {% endif %}
-        ">
-            {{ message }}
-        </div>
-    {% endif %}
+  <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark-mode:text-white mb-1 text-center">Create an account</h2>
+  <p class="text-sm text-gray-600 dark-mode:text-gray-300 text-center mb-6">Enter your details below to create your account.</p>
 
-    <form method="POST" action="/register">
-        <!-- Full Name -->
-        <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Full Name</label>
-            <input 
-                type="text" 
-                id="name" 
-                name="name"
-                class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                required
-            >
-        </div>
-
-        <!-- University ID -->
-        <div class="mb-4">
-            <label for="university_id" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">University ID Number</label>
-            <input 
-                type="text" 
-                id="university_id" 
-                name="university_id"
-                placeholder="e.g. 2023-001234"
-                class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                required
-            >
-        </div>
-
-        <!-- Email -->
-        <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Email</label>
-            <input 
-                type="email" 
-                id="email" 
-                name="email"
-                class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                required
-            >
-        </div>
-
-        <!-- Password -->
-        <div class="mb-4 relative">
-            <label for="password" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Password</label>
-            <div class="relative">
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password"
-                    class="w-full pr-10 border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                    required
-                >
-                <!-- Eye toggle -->
-                <button type="button" id="togglePassword" 
-                    class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 dark-mode:text-gray-200">
-                    <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.956 9.956 0 012.223-3.383M6.1 6.1A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-1.57 3.043M3 3l18 18" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mb-6 relative">
-            <label for="confirm_password" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Ku celi Password-ka</label>
-            <div class="relative">
-                <input 
-                    type="password" 
-                    id="confirm_password" 
-                    name="confirm_password"
-                    class="w-full pr-10 border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
-                    required
-                >
-                <!-- Eye toggle -->
-                <button type="button" id="toggleConfirmPassword" 
-                    class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 dark-mode:text-gray-200">
-                    <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.956 9.956 0 012.223-3.383M6.1 6.1A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-1.57 3.043M3 3l18 18" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Submit -->
-        <button 
-            type="submit" 
-            class="w-full py-2 px-4 bg-indigo-700 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-800 dark-mode:bg-indigo-600 dark-mode:hover:bg-indigo-700 transition duration-200"
+  <form method="POST" action="/register" class="space-y-5">
+    <!-- Name row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label for="first_name" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">First name</label>
+        <input
+          type="text"
+          id="first_name"
+          name="first_name"
+          class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+          required
         >
-            Register
-        </button>
-    </form>
-
-    <div class="text-center text-sm text-gray-500 dark-mode:text-gray-300 mt-4">
-        <p class="mb-2">After registration, please check your email inbox to confirm your account. Then wait for admin verification before you can vote.</p>
-        <p>Already have an account?
-            <a href="/login" class="text-indigo-600 dark-mode:text-indigo-400 hover:underline">Login</a>
-        </p>
+      </div>
+      <div>
+        <label for="last_name" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Last name</label>
+        <input
+          type="text"
+          id="last_name"
+          name="last_name"
+          class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+          required
+        >
+      </div>
     </div>
+
+    <!-- University ID -->
+    <div>
+      <label for="university_id" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">University ID number</label>
+      <input
+        type="text"
+        id="university_id"
+        name="university_id"
+        placeholder="e.g. 2023-001234"
+        class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+        required
+      >
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Email address</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+        required
+      >
+    </div>
+
+    <!-- Phone (optional) -->
+    <div>
+      <label for="phone" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Phone number (optional)</label>
+      <input
+        type="tel"
+        id="phone"
+        name="phone"
+        placeholder="+252 61‑123‑4567"
+        class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+      >
+    </div>
+
+    <!-- Password + Confirm row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="relative">
+        <label for="password" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Password</label>
+        <div class="relative">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="w-full pr-10 border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+            required
+          >
+          <button type="button" id="togglePassword"
+                  class="absolute top-1/2 right-3 -translate-y-1/2 password-toggle">
+            <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.956 9.956 0 012.223-3.383M6.1 6.1A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-1.57 3.043M3 3l18 18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="relative">
+        <label for="confirm_password" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Confirm password</label>
+        <div class="relative">
+          <input
+            type="password"
+            id="confirm_password"
+            name="confirm_password"
+            class="w-full pr-10 border border-gray-300 dark-mode:border-gray-600 rounded-xl px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black"
+            required
+          >
+          <button type="button" id="toggleConfirmPassword"
+                  class="absolute top-1/2 right-3 -translate-y-1/2 password-toggle">
+            <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.269-2.943-9.543-7a9.956 9.956 0 012.223-3.383M6.1 6.1A9.953 9.953 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-1.57 3.043M3 3l18 18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms -->
+    <div class="flex items-start gap-3 text-sm text-gray-600 dark-mode:text-gray-300">
+      <input id="accept_terms" name="accept_terms" type="checkbox" class="mt-1 h-4 w-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500" required>
+      <label for="accept_terms">
+        I accept the <span class="text-emerald-600 dark-mode:text-emerald-400">Terms and Conditions</span>.
+        By creating an account, you agree to our terms and privacy policy.
+      </label>
+    </div>
+
+    <!-- Submit -->
+    <button
+      type="submit"
+      class="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-xl shadow-md hover:bg-indigo-700 dark-mode:bg-indigo-500 dark-mode:hover:bg-indigo-600 transition duration-200 flex items-center justify-center gap-2"
+    >
+      <span>Create account</span>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
+    </button>
+  </form>
+
+  <div class="text-center text-sm text-gray-500 dark-mode:text-gray-300 mt-6">
+    <p>Already have an account?
+      <a href="/login" class="text-indigo-600 dark-mode:text-indigo-400 hover:underline">Sign in</a>
+    </p>
+  </div>
 </div>
 
 <!-- Show/Hide Password Script -->
