@@ -156,13 +156,18 @@ body.dark-mode select:focus {
         <a href="/results" class="hover:underline">Results</a>
         <a href="/logout" class="hover:underline">Logout</a>
       {% else %}
-        <a href="/login" class="hover:underline">Login</a>
-        <a href="/register" class="hover:underline">Register</a>
+        <a href="/login" class="hover:underline">Sign in</a>
+        <a href="/register" class="hover:underline">Register now</a>
       {% endif %}
 
       <!-- Dark Mode Toggle -->
-      <button id="theme-toggle" class="toggle-btn" title="Toggle theme">
-        <span id="theme-icon" class="icon">🌞</span>
+      <button id="theme-toggle" class="toggle-btn" title="Toggle theme" aria-label="Toggle theme">
+        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364l-1.414-1.414M7.05 7.05L5.636 5.636m12.728 0l-1.414 1.414M7.05 16.95l-1.414 1.414M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+        </svg>
+        <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 118.646 3.646 7 7 0 0020.354 15.354z"/>
+        </svg>
       </button>
     </div>
   </div>
@@ -232,27 +237,29 @@ body.dark-mode select:focus {
   <!-- JS Theme Toggle -->
   <script>
     const toggleBtn = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
     const body = document.body;
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
 
-    if (localStorage.getItem('theme') === 'dark') {
-      body.classList.add('dark-mode');
-      themeIcon.textContent = '🌙';
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        body.classList.add('dark-mode');
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+      } else {
+        body.classList.remove('dark-mode');
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+      }
     }
 
+    const saved = localStorage.getItem('theme') || 'light';
+    applyTheme(saved);
+
     toggleBtn.addEventListener('click', () => {
-      body.classList.toggle('dark-mode');
-      themeIcon.classList.add('rotate');
-
-      setTimeout(() => themeIcon.classList.remove('rotate'), 400);
-
-      if (body.classList.contains('dark-mode')) {
-        themeIcon.textContent = '🌙';
-        localStorage.setItem('theme', 'dark');
-      } else {
-        themeIcon.textContent = '🌞';
-        localStorage.setItem('theme', 'light');
-      }
+      const next = body.classList.contains('dark-mode') ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem('theme', next);
     });
   </script>
 </body>

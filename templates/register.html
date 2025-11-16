@@ -31,6 +31,19 @@
             >
         </div>
 
+        <!-- University ID -->
+        <div class="mb-4">
+            <label for="university_id" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">University ID Number</label>
+            <input 
+                type="text" 
+                id="university_id" 
+                name="university_id"
+                placeholder="e.g. 2023-001234"
+                class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 dark-mode:bg-gray-100 dark-mode:text-black" 
+                required
+            >
+        </div>
+
         <!-- Email -->
         <div class="mb-4">
             <label for="email" class="block text-sm font-medium text-gray-700 dark-mode:text-white mb-1">Email</label>
@@ -109,7 +122,8 @@
     </form>
 
     <div class="text-center text-sm text-gray-500 dark-mode:text-gray-300 mt-4">
-        <p>Already have an account? ✅
+        <p class="mb-2">After registration, please check your email inbox to confirm your account. Then wait for admin verification before you can vote.</p>
+        <p>Already have an account?
             <a href="/login" class="text-indigo-600 dark-mode:text-indigo-400 hover:underline">Login</a>
         </p>
     </div>

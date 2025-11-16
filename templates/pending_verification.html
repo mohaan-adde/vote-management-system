@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Pending Verification{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto bg-white dark-mode:bg-gray-800 p-8 rounded-2xl shadow">
+  <h2 class="text-2xl font-bold mb-3 text-center text-indigo-700 dark-mode:text-indigo-300">Account pending admin verification</h2>
+  <p class="text-sm text-slate-600 dark-mode:text-slate-300 mb-4 text-center">
+    Your email is confirmed, but an admin must verify your student account before you can vote.
+  </p>
+  <ul class="text-sm space-y-2 text-slate-700 dark-mode:text-slate-200">
+    <li>• Make sure you registered with your correct university ID.</li>
+    <li>• If you made a mistake, log out and register again or contact admin.</li>
+  </ul>
+  <div class="mt-6 flex justify-center gap-3">
+    <a href="/logout" class="px-4 py-2 rounded border border-slate-300 dark-mode:border-slate-600">Logout</a>
+    <a href="/vote" class="px-4 py-2 rounded bg-indigo-700 text-white">Refresh status</a>
+  </div>
+</div>
+{% endblock %}

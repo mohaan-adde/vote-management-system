@@ -3,17 +3,46 @@
 {% block content %}
 <div class="relative min-h-screen bg-gray-100 dark-mode:bg-gray-800 transition-colors duration-500">
   <div class="relative z-10 p-8">
-    <h2 class="text-3xl font-bold text-center mb-8 text-white-900 dark-mode:text-white">
+    <h2 class="text-3xl font-bold text-center mb-3 text-white-900 dark-mode:text-white">
       Doorashada Gudoomiyaha Ardayda
     </h2>
 
+    {% if election_end_iso %}
+    <div class="max-w-2xl mx-auto mb-8 p-3 rounded-lg border bg-white dark-mode:bg-gray-700 dark-mode:border-gray-600 text-center">
+      <div class="flex items-center justify-center gap-2">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
+        <span class="font-semibold">Voting closes in</span>
+        <span id="vote-countdown" class="font-mono"></span>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {% for c in candidates %}
-      <div class="bg-white dark-mode:bg-gray-700 p-6 rounded-xl text-center shadow-lg transition-colors duration-300">
+      {% set rank = loop.index %}
+      {% set ring = 'ring-gray-300' %}
+      {% if rank == 1 %}{% set ring = 'ring-yellow-400' %}{% elif rank == 2 %}{% set ring = 'ring-gray-400' %}{% elif rank == 3 %}{% set ring = 'ring-amber-700' %}{% endif %}
+
+      <div class="relative bg-white dark-mode:bg-gray-700 p-6 rounded-xl text-center shadow-lg transition-colors duration-300">
+        {% if rank <= 10 %}
+        <div class="absolute -top-3 -left-3">
+          {% if rank == 1 %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21l4-2 4 2V5a2 2 0 00-2-2H10a2 2 0 00-2 2z"/></svg>
+              Winner
+            </span>
+          {% elif rank in [2,3] %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">#{{ rank }}</span>
+          {% else %}
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-300">#{{ rank }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+
         {% if c.photo %}
-          <img src="{{ c.photo }}" alt="{{ c.name }}" class="w-32 h-32 object-cover mx-auto rounded-full mb-4">
+          <img src="{{ c.photo }}" alt="{{ c.name }}" class="w-32 h-32 object-cover mx-auto rounded-full mb-4 ring-4 {{ ring }}">
         {% else %}
-          <div class="w-32 h-32 bg-gray-200 dark-mode:bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 dark-mode:text-gray-200">
+          <div class="w-32 h-32 bg-gray-200 dark-mode:bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center text-gray-400 dark-mode:text-gray-200 ring-4 {{ ring }}">
             {{ c.name[0:2]|upper }}
           </div>
         {% endif %}
@@ -22,14 +51,10 @@
         <p class="italic mb-3 text-yellow-600 dark-mode:text-yellow-400">"{{ c.motto }}"</p>
 
         {% if has_voted %}
-          <button class="w-full py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>
-            Already Voted
-          </button>
+          <button class="w-full py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed" disabled>Already Voted</button>
         {% else %}
           <form action="/vote/{{ c.id }}" method="POST">
-            <button class="w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-200">
-              Vote
-            </button>
+            <button class="w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-200">Vote</button>
           </form>
         {% endif %}
       </div>
@@ -37,4 +62,25 @@
     </div>
   </div>
 </div>
+
+{% if election_end_iso %}
+<script>
+  (function(){
+    const el = document.getElementById('vote-countdown');
+    const end = new Date('{{ election_end_iso }}');
+    function tick(){
+      const now = new Date();
+      let ms = end - now;
+      if (isNaN(ms) || ms <= 0){ el.textContent = 'Voting closed'; return; }
+      const d = Math.floor(ms/86400000); ms%=86400000;
+      const h = Math.floor(ms/3600000); ms%=3600000;
+      const m = Math.floor(ms/60000); ms%=60000;
+      const s = Math.floor(ms/1000);
+      el.textContent = `${d}d ${h}h ${m}m ${s}s`;
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+{% endif %}
 {% endblock %}

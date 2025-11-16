@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% block title %}Welcome | GSU Voting{% endblock %}
+
+{% block content %}
+<div class="space-y-16">
+
+  <!-- Section 1: Hero -->
+  <section class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+    <div>
+      <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4 text-slate-900 dark-mode:text-white">
+        Smart, secure
+        <span class="text-indigo-600">university voting</span>
+      </h1>
+      <p class="text-slate-600 dark-mode:text-slate-300 mb-6 max-w-prose">
+        A modern voting system for campus elections. Students register with their university ID,
+        confirm email, wait for admin approval, and cast exactly one verified vote.
+      </p>
+
+      <div class="flex flex-wrap gap-3 mb-6">
+        <a href="/register" class="px-5 py-3 rounded-lg bg-indigo-700 text-white hover:bg-indigo-800">Register now</a>
+        <a href="/login" class="px-5 py-3 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark-mode:border-indigo-700 dark-mode:text-indigo-300 dark-mode:hover:bg-indigo-900/30">Sign in</a>
+      </div>
+
+      {% if election_end_iso %}
+      <div class="mt-4 inline-flex items-center gap-3 px-4 py-3 rounded-xl border bg-white dark-mode:bg-gray-800 dark-mode:border-gray-700">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
+        <div>
+          <p class="text-xs uppercase tracking-wide text-slate-500 dark-mode:text-slate-400">Voting closes in</p>
+          <p id="home-countdown" class="text-lg font-semibold"></p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="bg-slate-900 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-indigo-500 via-emerald-500 to-sky-400"></div>
+        <div class="relative space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-semibold">GS</span>
+              <span class="text-slate-100 font-semibold text-sm">GSU Election Overview</span>
+            </div>
+            <span class="text-xs text-slate-400">Live snapshot</span>
+          </div>
+
+          {% set stats = hero_stats or {} %}
+          <div class="grid grid-cols-3 gap-3 text-slate-100 text-sm">
+            <div class="bg-slate-800/60 rounded-lg p-3">
+              <p class="text-xs text-slate-400">Registered students</p>
+              <p class="text-xl font-bold">{{ stats.total_registered or 0 }}</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-lg p-3">
+              <p class="text-xs text-slate-400">Have voted</p>
+              <p class="text-xl font-bold">{{ stats.total_voted or 0 }}</p>
+            </div>
+            <div class="bg-slate-800/60 rounded-lg p-3">
+              <p class="text-xs text-slate-400">Turnout</p>
+              <p class="text-xl font-bold">{{ stats.turnout or 0 }}%</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-slate-100 text-xs">
+            {% if top_candidates %}
+              {% for c in top_candidates %}
+              {% set rank = loop.index %}
+              {% set pct = 0 %}
+              {% if stats.max_votes %}
+                {% set pct = ((c.votes or 0) * 100 // stats.max_votes) %}
+              {% endif %}
+              <div class="bg-slate-800/80 rounded-lg px-3 py-2 flex flex-col gap-1">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-[10px] font-semibold">{{ rank }}</span>
+                    <span class="text-xs font-semibold">{{ c.name }}</span>
+                  </div>
+                  <span class="font-semibold {% if rank == 1 %}text-emerald-400{% elif rank == 2 %}text-sky-400{% else %}text-amber-300{% endif %}">{{ c.votes or 0 }} votes</span>
+                </div>
+                <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full {% if rank == 1 %}bg-emerald-400{% elif rank == 2 %}bg-sky-400{% else %}bg-amber-300{% endif %}" style="width: {{ pct }}%"></div>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <p class="text-xs text-slate-300">No candidates have been added yet. Once the admin adds candidates and votes come in, a live overview will appear here.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: Step-by-step instructions -->
+  <section class="border-t border-slate-200 dark-mode:border-slate-700 pt-10">
+    <div class="max-w-5xl mx-auto">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark-mode:text-white">How voting works</h2>
+          <p class="text-sm text-slate-600 dark-mode:text-slate-300">Follow these steps to participate in the university election.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <!-- Step 1 -->
+        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
+            <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="3"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 11l2 2 4-4"/></svg>
+          </div>
+          <h3 class="font-semibold mb-1">Create account</h3>
+          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Register with your full name, university ID and student email.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
+            <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m0 0l3-3m-3 3l3 3"/></svg>
+          </div>
+          <h3 class="font-semibold mb-1">Confirm email</h3>
+          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Open the link sent to your inbox to activate your account.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">3</div>
+            <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
+          </div>
+          <h3 class="font-semibold mb-1">Wait for admin verification</h3>
+          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Admins confirm your student status before you can vote.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
+          <div class="flex items-center justify-between mb-4">
+            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">4</div>
+            <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22a10 10 0 110-20 10 10 0 010 20z"/></svg>
+          </div>
+          <h3 class="font-semibold mb-1">Cast your vote</h3>
+          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Log in, choose your candidate and submit a single secure vote.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Features for students and admins -->
+  <section class="border-t border-slate-200 dark-mode:border-slate-700 pt-10">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div>
+        <h3 class="text-xl font-bold mb-3 text-slate-900 dark-mode:text-white">For students</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <p class="text-slate-600 dark-mode:text-slate-300">Transparent results with ranked candidates and winner badges.</p>
+          </div>
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-indigo-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 6h10M9 14h6M11 18h2"/></svg>
+            <p class="text-slate-600 dark-mode:text-slate-300">Clean, mobile-friendly interface for quick voting.</p>
+          </div>
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-sky-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2M9 7h.01M15 7h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <p class="text-slate-600 dark-mode:text-slate-300">Designed for campus use with clear instructions in every step.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold mb-3 text-slate-900 dark-mode:text-white">For admins</h3>
+        <div class="space-y-3 text-sm">
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-amber-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
+            <p class="text-slate-600 dark-mode:text-slate-300">Set voting deadlines and let the system close voting automatically.</p>
+          </div>
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-rose-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21a7 7 0 0114 0v1H5v-1z"/></svg>
+            <p class="text-slate-600 dark-mode:text-slate-300">Verify student profiles and manage candidates with photos.</p>
+          </div>
+          <div class="flex gap-3">
+            <svg class="w-5 h-5 text-emerald-400 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
+            <p class="text-slate-600 dark-mode:text-slate-300">Simple dashboard to see who voted and export summary data if needed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+{% if election_end_iso %}
+<script>
+  (function(){
+    const el = document.getElementById('home-countdown');
+    if (!el) return;
+    const end = new Date('{{ election_end_iso }}');
+    function tick(){
+      const now = new Date();
+      let ms = end - now;
+      if (isNaN(ms) || ms <= 0){ el.textContent = 'Voting closed'; return; }
+      const d = Math.floor(ms/86400000); ms%=86400000;
+      const h = Math.floor(ms/3600000); ms%=3600000;
+      const m = Math.floor(ms/60000); ms%=60000;
+      const s = Math.floor(ms/1000);
+      el.textContent = `${d}d ${h}h ${m}m ${s}s`;
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+{% endif %}
+{% endblock %}
