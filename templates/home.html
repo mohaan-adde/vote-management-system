@@ -33,57 +33,42 @@
     </div>
 
     <div>
-      <div class="bg-slate-900 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div class="absolute inset-0 opacity-20 bg-gradient-to-br from-indigo-500 via-emerald-500 to-sky-400"></div>
-        <div class="relative space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-300 text-sm font-semibold">GS</span>
-              <span class="text-slate-100 font-semibold text-sm">GSU Election Overview</span>
+      <div class="rounded-2xl border border-slate-200 dark-mode:border-slate-700 p-6 shadow-sm bg-white/70 dark-mode:bg-transparent">
+        <!-- Mac-style top bar -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-1">
+            <span class="h-2.5 w-2.5 rounded-full bg-red-400 border border-red-500"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 border border-amber-500"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 border border-emerald-500"></span>
+          </div>
+          <span class="text-xs text-slate-500 dark-mode:text-slate-400">How voting works when you click</span>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center gap-5">
+          <!-- Vote icon -->
+          <div class="flex items-center justify-center">
+            <div class="border-2 border-slate-700 rounded-2xl p-3">
+              <svg class="w-16 h-16 text-slate-800 dark-mode:text-slate-100" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="8" y="10" width="48" height="24" rx="6" ry="6"></rect>
+                <path d="M16 22h32"></path>
+                <path d="M24 18h8"></path>
+                <path d="M32 46V34"></path>
+                <path d="M24 46h16"></path>
+                <path d="M20 54h24"></path>
+                <path d="M18 30v10a8 8 0 0 0 8 8h12a8 8 0 0 0 8-8V30"></path>
+              </svg>
             </div>
-            <span class="text-xs text-slate-400">Live snapshot</span>
           </div>
 
-          {% set stats = hero_stats or {} %}
-          <div class="grid grid-cols-3 gap-3 text-slate-100 text-sm">
-            <div class="bg-slate-800/60 rounded-lg p-3">
-              <p class="text-xs text-slate-400">Registered students</p>
-              <p class="text-xl font-bold">{{ stats.total_registered or 0 }}</p>
-            </div>
-            <div class="bg-slate-800/60 rounded-lg p-3">
-              <p class="text-xs text-slate-400">Have voted</p>
-              <p class="text-xl font-bold">{{ stats.total_voted or 0 }}</p>
-            </div>
-            <div class="bg-slate-800/60 rounded-lg p-3">
-              <p class="text-xs text-slate-400">Turnout</p>
-              <p class="text-xl font-bold">{{ stats.turnout or 0 }}%</p>
-            </div>
-          </div>
-
-          <div class="space-y-2 text-slate-100 text-xs">
-            {% if top_candidates %}
-              {% for c in top_candidates %}
-              {% set rank = loop.index %}
-              {% set pct = 0 %}
-              {% if stats.max_votes %}
-                {% set pct = ((c.votes or 0) * 100 // stats.max_votes) %}
-              {% endif %}
-              <div class="bg-slate-800/80 rounded-lg px-3 py-2 flex flex-col gap-1">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-2">
-                    <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-[10px] font-semibold">{{ rank }}</span>
-                    <span class="text-xs font-semibold">{{ c.name }}</span>
-                  </div>
-                  <span class="font-semibold {% if rank == 1 %}text-emerald-400{% elif rank == 2 %}text-sky-400{% else %}text-amber-300{% endif %}">{{ c.votes or 0 }} votes</span>
-                </div>
-                <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                  <div class="h-full {% if rank == 1 %}bg-emerald-400{% elif rank == 2 %}bg-sky-400{% else %}bg-amber-300{% endif %}" style="width: {{ pct }}%"></div>
-                </div>
-              </div>
-              {% endfor %}
-            {% else %}
-              <p class="text-xs text-slate-300">No candidates have been added yet. Once the admin adds candidates and votes come in, a live overview will appear here.</p>
-            {% endif %}
+          <!-- Text explaining click -->
+          <div class="space-y-2 text-sm text-slate-700 dark-mode:text-slate-200">
+            <p class="font-semibold">When you click the <span class="text-emerald-600">Vote</span> button:</p>
+            <ul class="list-disc pl-5 space-y-1">
+              <li>We check that you are logged in with your student email and verified by admin.</li>
+              <li>If you have not voted before, your choice is saved securely in the system.</li>
+              <li>Your candidate's vote count increases by one and the button changes to "Already voted".</li>
+            </ul>
+            <p class="text-xs text-slate-500 dark-mode:text-slate-400">Each verified student can submit exactly one vote for this election.</p>
           </div>
         </div>
       </div>

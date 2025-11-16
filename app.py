@@ -172,13 +172,41 @@ def forgot_password():
             flash("Please enter your email address.", "warning")
             return redirect(url_for("forgot_password"))
         try:
-            redirect_url = url_for("login", _external=True)
+            redirect_url = url_for("update_password", _external=True)
             supabase.auth.reset_password_for_email(email, options={"redirect_to": redirect_url})
             flash("If that email exists, a password reset link has been sent.", "info")
         except Exception as e:
             flash("Could not send password reset email. Please try again later.", "error")
         return redirect(url_for("login"))
     return render_template("reset_password.html")
+
+
+@app.route("/update-password", methods=["GET", "POST"])
+def update_password():
+    """Handle password update after the user clicks the email reset link.
+
+    Supabase will create a session for the user in the browser when they
+    open the reset link. Here we just ask for a new password and send it
+    to Supabase.
+    """
+    if request.method == "POST":
+        new_password = request.form.get("password", "").strip()
+        confirm = request.form.get("confirm_password", "").strip()
+        if not new_password or not confirm:
+            flash("Please fill in both password fields.", "warning")
+            return redirect(url_for("update_password"))
+        if new_password != confirm:
+            flash("Passwords do not match.", "error")
+            return redirect(url_for("update_password"))
+        try:
+            supabase.auth.update_user({"password": new_password})
+            flash("Your password has been updated. You can now log in.", "success")
+            return redirect(url_for("login"))
+        except Exception:
+            flash("Could not update password. The reset link may have expired.", "error")
+            return redirect(url_for("login"))
+
+    return render_template("update_password.html")
 
 # -------------------- LOGOUT --------------------
 @app.route("/logout")
