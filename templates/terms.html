@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Terms & Conditions | GSU Voting{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-3xl font-extrabold text-slate-900 dark-mode:text-white mb-2">Voting terms & conditions</h1>
+    <p class="text-sm text-slate-600 dark-mode:text-slate-300 max-w-2xl">
+      These rules explain how the GSU online voting system should be used. By creating an account or casting a vote,
+      you agree to follow these terms.
+    </p>
+  </div>
+
+  <div class="space-y-4 text-sm text-slate-700 dark-mode:text-slate-200">
+    <section class="bg-white dark-mode:bg-gray-800 rounded-xl border border-slate-100 dark-mode:border-slate-700 p-4">
+      <h2 class="font-semibold mb-2">1. Eligibility</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>You must be a currently enrolled GSU student to register.</li>
+        <li>You must use your official student email and real university ID.</li>
+        <li>Each person may only create <span class="font-semibold">one</span> account.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white dark-mode:bg-gray-800 rounded-xl border border-slate-100 dark-mode:border-slate-700 p-4">
+      <h2 class="font-semibold mb-2">2. Account verification</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>You must confirm your email address before using the system.</li>
+        <li>An admin will verify your profile before you are allowed to vote.</li>
+        <li>Providing false information can lead to your account being disabled.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white dark-mode:bg-gray-800 rounded-xl border border-slate-100 dark-mode:border-slate-700 p-4">
+      <h2 class="font-semibold mb-2">3. One person, one vote</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>Each verified student is allowed to cast <span class="font-semibold">exactly one</span> vote per election.</li>
+        <li>You may not attempt to vote on behalf of another person.</li>
+        <li>Any attempt to manipulate the results will be investigated and may be reported to university administration.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white dark-mode:bg-gray-800 rounded-xl border border-slate-100 dark-mode:border-slate-700 p-4">
+      <h2 class="font-semibold mb-2">4. Use of results</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>Results are for official university election purposes only.</li>
+        <li>Admins may export anonymised data to report turnout and winning candidates.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white dark-mode:bg-gray-800 rounded-xl border border-slate-100 dark-mode:border-slate-700 p-4">
+      <h2 class="font-semibold mb-2">5. Privacy</h2>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>Your password is stored securely by the authentication provider (Supabase).</li>
+        <li>Admins can see who voted and which candidate they selected only in aggregated form where possible.</li>
+        <li>We will not sell or share your personal data with third parties outside the university election process.</li>
+      </ul>
+    </section>
+
+    <section class="bg-white dark-mode:bg-gray-800 rounded-xl border border-slate-100 dark-mode:border-slate-700 p-4">
+      <h2 class="font-semibold mb-2">6. Support & contact</h2>
+      <p>
+        If you have any questions about these terms or your account, please
+        <a href="/contact" class="text-blue-600 hover:underline">contact the election team</a>.
+      </p>
+    </section>
+  </div>
+</div>
+{% endblock %}

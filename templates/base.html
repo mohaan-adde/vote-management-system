@@ -171,6 +171,7 @@ body.dark-mode select:focus {
 </head>
 
 <body class="min-h-screen flex flex-col transition-colors duration-500">
+{% if not no_nav %}
 <!-- Navbar -->
 <nav class="bg-indigo-700 text-white shadow-lg transition-colors duration-500 sticky top-0 z-50">
   <div class="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -191,7 +192,6 @@ body.dark-mode select:focus {
         <a href="/results" class="hover:underline">Results</a>
         <a href="/logout" class="hover:underline">Logout</a>
       {% else %}
-        <a href="/contact" class="hover:underline">Contact us</a>
         <a href="/login" class="hover:underline">Sign in</a>
         <a href="/register" class="hover:underline">Register now</a>
       {% endif %}
@@ -208,6 +208,7 @@ body.dark-mode select:focus {
     </div>
   </div>
 </nav>
+{% endif %}
 
 
   <!-- Main Content -->
@@ -271,6 +272,7 @@ body.dark-mode select:focus {
       <p class="text-sm text-center md:text-left">&copy; {{ current_year or 2025 }} GSU Voting System. All Rights Reserved.</p>
       <div class="flex items-center gap-4">
         <a href="/contact" class="text-sm hover:underline">Contact us</a>
+        <a href="/terms" class="text-sm hover:underline">Terms</a>
         <a href="#" class="hover:text-blue-200" aria-label="Facebook">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12.07C22 6.48 17.52 2 11.93 2 6.35 2 1.87 6.48 1.87 12.07c0 4.84 3.44 8.86 7.94 9.8v-6.93H7.4v-2.87h2.41V9.41c0-2.38 1.42-3.7 3.6-3.7 1.04 0 2.13.19 2.13.19v2.35h-1.2c-1.18 0-1.55.73-1.55 1.48v1.78h2.64l-.42 2.87h-2.22v6.93c4.5-.94 7.94-4.96 7.94-9.8z"/></svg>
         </a>

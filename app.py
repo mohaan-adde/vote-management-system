@@ -224,6 +224,12 @@ def pending_verification():
 def contact():
     return render_template("contact.html")
 
+
+# -------------------- TERMS --------------------
+@app.route("/terms")
+def terms():
+    return render_template("terms.html", no_nav=True)
+
 # -------------------- VOTING --------------------
 @app.route("/vote")
 def vote():
