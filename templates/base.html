@@ -186,6 +186,7 @@ body.dark-mode select:focus {
     <div class="flex items-center space-x-4 md:space-x-6">
       {% if session.get('user') and session.get('user') != "admin@gsu.edu" %}
         <a href="/vote" class="hover:underline">Vote</a>
+        <a href="/results" class="hover:underline">Results</a>
         <a href="/logout" class="hover:underline">Logout</a>
       {% elif session.get('user') and session.get('user') == "admin@gsu.edu" %}
         <a href="/admin" class="hover:underline">Dashboard</a>
