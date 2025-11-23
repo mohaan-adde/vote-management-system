@@ -4,186 +4,429 @@
 {% block content %}
 <div class="space-y-16">
 
-  <!-- Section 1: Hero -->
-  <section class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-    <div>
-      <h1 class="text-4xl md:text-5xl font-extrabold leading-tight mb-4 hero-heading">
-       
-  <span style="
-  background: linear-gradient(90deg, #22c55e, #0ea5e9);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: 700;">
-  Global
-</span>
+ <section class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center py-12 lg:py-20">
+  
+  <div class="order-2 lg:order-1">
+    <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-slate-900 dark-mode:text-white">
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-600">
+        Global
+      </span>
+      <span class="block text-slate-900 dark-mode:text-white mt-1">University Voting</span>
+    </h1>
+    
+    <p class="text-lg text-slate-600 dark-mode:text-slate-300 mb-8 max-w-lg leading-relaxed">
+      A secure, modern voting system for campus elections. Register with your university ID, verify your identity, and cast exactly one encrypted vote.
+    </p>
 
 
-        <span class="hero-highlight">university voting</span>
-      </h1>
-      <p class="text-slate-600 dark-mode:text-slate-300 mb-2 max-w-prose">
-        A modern voting system for campus elections. Students register with their university ID,
-        confirm email, wait for admin approval, and cast exactly one verified vote.
-      </p>
-      <p class="text-sm text-slate-500 dark-mode:text-slate-400 mb-6 max-w-prose">
-        Need help with your account or voting? <a href="/contact" class="text-blue-600 hover:underline">Contact the election team</a> and we will support you.
-      </p>
+    <p class="text-sm text-slate-500 dark-mode:text-slate-400">
+      Need help? <a href="/contact" class="text-indigo-600 hover:text-indigo-700 font-medium hover:underline decoration-2 underline-offset-2">Contact the election team</a> for support.
+    </p>
 
-      <div class="flex flex-wrap gap-3 mb-6">
-        <a href="/register" class="px-5 py-3 rounded-lg bg-indigo-700 text-white hover:bg-indigo-800">Register now</a>
-        <a href="/login" class="px-5 py-3 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 dark-mode:border-indigo-700 dark-mode:text-indigo-300 dark-mode:hover:bg-indigo-900/30">Sign in</a>
+    {% if election_end_iso %}
+    <div class="mt-8 inline-flex items-center gap-4 px-5 py-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 dark-mode:bg-gray-800 dark-mode:border-gray-700 backdrop-blur-sm">
+      <div class="p-2 bg-white dark-mode:bg-gray-700 rounded-lg shadow-sm">
+        <svg class="w-6 h-6 text-indigo-600 dark-mode:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/>
+        </svg>
       </div>
-
-      {% if election_end_iso %}
-      <div class="mt-4 inline-flex items-center gap-3 px-4 py-3 rounded-xl border bg-white dark-mode:bg-gray-800 dark-mode:border-gray-700">
-        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
-        <div>
-          <p class="text-xs uppercase tracking-wide text-slate-500 dark-mode:text-slate-400">Voting closes in</p>
-          <p id="home-countdown" class="text-lg font-semibold"></p>
-        </div>
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-indigo-600 dark-mode:text-indigo-400">Voting Closes In</p>
+        <p id="home-countdown" class="text-xl font-mono font-bold text-slate-900 dark-mode:text-white tabular-nums">--d --h --m --s</p>
       </div>
-      {% endif %}
     </div>
+    {% endif %}
+  </div>
 
-    <div>
-      <div class="rounded-2xl border border-slate-200 dark-mode:border-slate-700 p-6 shadow-sm bg-white/70 dark-mode:bg-transparent">
-        <!-- Mac-style top bar -->
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-1">
-            <span class="h-2.5 w-2.5 rounded-full bg-red-400 border border-red-500"></span>
-            <span class="h-2.5 w-2.5 rounded-full bg-amber-400 border border-amber-500"></span>
-            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400 border border-emerald-500"></span>
-          </div>
-          <span class="text-xs text-slate-500 dark-mode:text-slate-400">How voting works when you click</span>
+  <div class="order-1 lg:order-2">
+    <div class="relative rounded-2xl border border-slate-200 dark-mode:border-slate-700 bg-white dark-mode:bg-gray-800 shadow-2xl transition-transform hover:scale-[1.02] duration-500">
+      
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark-mode:border-slate-700 bg-slate-50/50 dark-mode:bg-gray-700/50 rounded-t-2xl">
+        <div class="flex items-center gap-2">
+          <span class="h-3 w-3 rounded-full bg-rose-500"></span>
+          <span class="h-3 w-3 rounded-full bg-amber-500"></span>
+          <span class="h-3 w-3 rounded-full bg-emerald-500"></span>
         </div>
+        <div class="text-xs font-mono text-slate-400 uppercase tracking-widest">System_Vote_Process.exe</div>
+      </div>
 
-        <div class="flex flex-col md:flex-row items-center gap-5">
-          <!-- Vote icon -->
-          <div class="flex items-center justify-center">
-            <div class="border-2 border-slate-700 rounded-2xl p-3">
-              <img src="{{ url_for('static', filename='vote-icon.png') }}"
-         alt="Vote icon" class="w-16 h-16 object-contain">
-                <rect x="8" y="10" width="48" height="24" rx="6" ry="6"></rect>
-                <path d="M16 22h32"></path>
-                <path d="M24 18h8"></path>
-                <path d="M32 46V34"></path>
-                <path d="M24 46h16"></path>
-                <path d="M20 54h24"></path>
-                <path d="M18 30v10a8 8 0 0 0 8 8h12a8 8 0 0 0 8-8V30"></path>
+      <div class="p-8">
+        <div class="flex flex-col sm:flex-row gap-8 items-start">
+          
+          <div class="flex-shrink-0 relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+            <div class="relative bg-white dark-mode:bg-gray-700 border border-slate-100 dark-mode:border-slate-600 rounded-2xl p-4 flex items-center justify-center h-24 w-24">
+              <svg class="w-12 h-12 text-indigo-600 dark-mode:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
           </div>
 
-          <!-- Text explaining click -->
-          <div class="space-y-2 text-sm text-slate-700 dark-mode:text-slate-200">
-            <p class="font-semibold">When you click the <span class="text-emerald-600">Vote</span> button:</p>
-            <ul class="list-disc pl-5 space-y-1">
-              <li>We check that you are logged in with your student email and verified by admin.</li>
-              <li>If you have not voted before, your choice is saved securely in the system.</li>
-              <li>Your candidate's vote count increases by one and the button changes to "Already voted".</li>
-            </ul>
-            <p class="text-xs text-slate-500 dark-mode:text-slate-400">Each verified student can submit exactly one vote for this election.</p>
+          <div class="flex-1 space-y-5">
+            <h3 class="text-lg font-bold text-slate-900 dark-mode:text-white flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Secure Vote Transaction
+            </h3>
+            
+            <div class="space-y-4">
+              <div class="flex gap-3 items-start">
+                <div class="mt-1 w-5 h-5 rounded-full bg-emerald-100 dark-mode:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800 dark-mode:text-slate-200">Identity Verification</p>
+                  <p class="text-xs text-slate-500 dark-mode:text-slate-400">System checks student ID & active status.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-3 items-start">
+                <div class="mt-1 w-5 h-5 rounded-full bg-emerald-100 dark-mode:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800 dark-mode:text-slate-200">Duplicate Check</p>
+                  <p class="text-xs text-slate-500 dark-mode:text-slate-400">Ensures you haven't voted previously.</p>
+                </div>
+              </div>
+
+              <div class="flex gap-3 items-start">
+                <div class="mt-1 w-5 h-5 rounded-full bg-blue-100 dark-mode:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-3 h-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-800 dark-mode:text-slate-200">Encrypted Submission</p>
+                  <p class="text-xs text-slate-500 dark-mode:text-slate-400">Vote is securely recorded and button locks.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+      
+      <div class="bg-gray-50 dark-mode:bg-gray-700/30 px-5 py-3 border-t border-slate-100 dark-mode:border-slate-700 flex justify-between items-center">
+        <span class="text-[10px] uppercase font-bold text-slate-400">Status: Online</span>
+        <div class="flex gap-1">
+          <span class="w-1 h-4 bg-emerald-500/20 rounded-full"></span>
+          <span class="w-1 h-4 bg-emerald-500/40 rounded-full"></span>
+          <span class="w-1 h-4 bg-emerald-500/60 rounded-full"></span>
+          <span class="w-1 h-4 bg-emerald-500 rounded-full animate-pulse"></span>
+        </div>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
   <!-- Section 2: Step-by-step instructions -->
-  <section class="border-t border-slate-200 dark-mode:border-slate-700 pt-10">
-    <div class="max-w-5xl mx-auto">
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900 dark-mode:text-white">How voting works</h2>
-          <p class="text-sm text-slate-600 dark-mode:text-slate-300">Follow these steps to participate in the university election.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <!-- Step 1 -->
-        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">1</div>
-            <svg class="w-5 h-5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="3"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 11l2 2 4-4"/></svg>
-          </div>
-          <h3 class="font-semibold mb-1">Create account</h3>
-          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Register with your full name, university ID and student email.</p>
+  <section class="py-20 bg-gray-50 dark:bg-gray-900">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white mb-2">How Voting Works</h2>
+            <p class="text-lg text-gray-600 dark:text-gray-400">Follow these four simple steps to participate in the university election securely.</p>
         </div>
 
-        <!-- Step 2 -->
-        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">2</div>
-            <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8m0 0l3-3m-3 3l3 3"/></svg>
-          </div>
-          <h3 class="font-semibold mb-1">Confirm email</h3>
-          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Open the link sent to your inbox to activate your account.</p>
-        </div>
+        <div class="relative grid grid-cols-1 md:grid-cols-4 gap-8">
 
-        <!-- Step 3 -->
-        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">3</div>
-            <svg class="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
-          </div>
-          <h3 class="font-semibold mb-1">Wait for admin verification</h3>
-          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Admins confirm your student status before you can vote.</p>
-        </div>
+            <div class="hidden md:block absolute top-1/4 left-0 right-0 h-0.5 bg-indigo-200 dark:bg-indigo-700 mx-10 -z-0"></div>
 
-        <!-- Step 4 -->
-        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-slate-700">
-          <div class="flex items-center justify-between mb-4">
-            <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm font-semibold">4</div>
-            <svg class="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22a10 10 0 110-20 10 10 0 010 20z"/></svg>
-          </div>
-          <h3 class="font-semibold mb-1">Cast your vote</h3>
-          <p class="text-xs text-slate-600 dark-mode:text-slate-300">Log in, choose your candidate and submit a single secure vote.</p>
+            <div class="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl border-t-4 border-indigo-600 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-12 w-12 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xl font-bold shadow-md z-10">1</div>
+                    <svg class="w-7 h-7 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 21v-2a4 4 0 00-4-4H7a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="3"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 11l2 2 4-4"/></svg>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">1. Register Account</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Create an account using your full name, university ID, and student email for verification.
+                </p>
+            </div>
+
+            <div class="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl border-t-4 border-emerald-600 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-12 w-12 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shadow-md z-10">2</div>
+                    <svg class="w-7 h-7 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">2. Verify Email</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Click the unique link sent to your university inbox to successfully activate your account.
+                </p>
+            </div>
+
+            <div class="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl border-t-4 border-amber-600 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-12 w-12 rounded-full bg-amber-600 text-white flex items-center justify-center text-xl font-bold shadow-md z-10">3</div>
+                    <svg class="w-7 h-7 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">3. Admin Approval</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Admins will confirm your student status and eligibility before granting you voting access.
+                </p>
+            </div>
+
+            <div class="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl border-t-4 border-blue-600 transition duration-300 hover:shadow-2xl">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="h-12 w-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold shadow-md z-10">4</div>
+                    <svg class="w-7 h-7 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22a10 10 0 110-20 10 10 0 010 20z"/></svg>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-gray-900 dark:text-white">4. Cast Your Vote</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Log in, review the candidates' profiles, choose your selection, and submit your single, secure vote.
+                </p>
+            </div>
         </div>
-      </div>
     </div>
-  </section>
+</section>
 
   <!-- Section 3: Features for students and admins -->
-  <section class="border-t border-slate-200 dark-mode:border-slate-700 pt-10">
-    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
-        <h3 class="text-xl font-bold mb-3 text-slate-900 dark-mode:text-white">For students</h3>
-        <div class="space-y-3 text-sm">
-          <div class="flex gap-3">
-            <svg class="w-5 h-5 text-emerald-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            <p class="text-slate-600 dark-mode:text-slate-300">Transparent results with ranked candidates and winner badges.</p>
-          </div>
-          <div class="flex gap-3">
-            <svg class="w-5 h-5 text-indigo-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 6h10M9 14h6M11 18h2"/></svg>
-            <p class="text-slate-600 dark-mode:text-slate-300">Clean, mobile-friendly interface for quick voting.</p>
-          </div>
-          <div class="flex gap-3">
-            <svg class="w-5 h-5 text-sky-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2M9 7h.01M15 7h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <p class="text-slate-600 dark-mode:text-slate-300">Designed for campus use with clear instructions in every step.</p>
-          </div>
-        </div>
-      </div>
-      <div>
-        <h3 class="text-xl font-bold mb-3 text-slate-900 dark-mode:text-white">For admins</h3>
-        <div class="space-y-3 text-sm">
-          <div class="flex gap-3">
-            <svg class="w-5 h-5 text-amber-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
-            <p class="text-slate-600 dark-mode:text-slate-300">Set voting deadlines and let the system close voting automatically.</p>
-          </div>
-          <div class="flex gap-3">
-            <svg class="w-5 h-5 text-rose-500 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21a7 7 0 0114 0v1H5v-1z"/></svg>
-            <p class="text-slate-600 dark-mode:text-slate-300">Verify student profiles and manage candidates with photos.</p>
-          </div>
-          <div class="flex gap-3">
-            <svg class="w-5 h-5 text-emerald-400 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"/></svg>
-            <p class="text-slate-600 dark-mode:text-slate-300">Simple dashboard to see who voted and export summary data if needed.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+ <section class="py-20 bg-gray-50 dark:bg-gray-900 border-t border-b border-gray-100 dark:border-gray-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-center mb-12 text-gray-900 dark:text-white">
+            Why Choose Our Voting System?
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border-t-4 border-indigo-600 transition duration-300 hover:shadow-xl">
+                <h3 class="text-2xl font-bold mb-6 text-indigo-700 dark:text-indigo-400 flex items-center gap-3">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-3H2v3h5M10 20h4M10 4h4v12h-4V4z"/></svg>
+                    For Students
+                </h3>
+                <div class="space-y-6 text-base">
+                    
+                    <div class="flex gap-4">
+                        <svg class="w-6 h-6 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold">Transparent Results:</span> See ranked candidates, winner badges, and vote percentages in real-time.
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <svg class="w-6 h-6 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold">Quick Voting:</span> Clean, intuitive, and fully <span class="text-indigo-600 dark:text-indigo-400">mobile-friendly interface</span> for voting in seconds.
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <svg class="w-6 h-6 text-sky-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2M9 7h.01M15 7h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold">User Focused:</span> Clear instructions and easy navigation designed specifically for the campus environment.
+                        </p>
+                    </div>
+                </div>
+            </div>
 
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg border-t-4 border-sky-600 transition duration-300 hover:shadow-xl">
+                <h3 class="text-2xl font-bold mb-6 text-sky-700 dark:text-sky-400 flex items-center gap-3">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    For Admins
+                </h3>
+                <div class="space-y-6 text-base">
+                    
+                    <div class="flex gap-4">
+                        <svg class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/></svg>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold">Automated Timers:</span> Easily set voting deadlines. The system handles <span class="text-amber-600 dark:text-amber-400">automatic closing</span> and result finalization.
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <svg class="w-6 h-6 text-rose-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c1.657 0 3-1.567 3-3.5S13.657 4 12 4 9 5.567 9 7.5 10.343 11 12 11z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21a7 7 0 0114 0v1H5v-1z"/></svg>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold">Easy Management:</span> Verify student profiles, manage candidates (with photos/manifestos), and update details instantly.
+                        </p>
+                    </div>
+                    
+                    <div class="flex gap-4">
+                        <svg class="w-6 h-6 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            <span class="font-semibold">Data Access:</span> Simple dashboard to track participation, monitor live results, and <span class="text-emerald-600 dark:text-emerald-400">export summary data</span> for official records.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+  <section class="py-16 bg-white dark:bg-gray-900">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 class="text-4xl font-extrabold text-center mb-12 text-gray-900 dark:text-white">
+            What Students Say
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition duration-300 border border-gray-100 dark:border-gray-700">
+                <div class="flex space-x-0.5 mb-4 text-yellow-400">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+                
+                <p class="text-lg italic text-gray-700 dark:text-gray-300 mb-6">
+                    "The University ID verification process gives me full confidence that the election results are legitimate and secure. Excellent system!"
+                </p>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 flex items-center justify-center rounded-full text-white font-bold bg-blue-600 shadow-md ring-2 ring-blue-300">
+                        A
+                    </div>
+                    <div>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">Mohamed S.</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Computer Science, 3rd Year</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition duration-300 border border-gray-100 dark:border-gray-700">
+                <div class="flex space-x-0.5 mb-4 text-yellow-400">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+
+                <p class="text-lg italic text-gray-700 dark:text-gray-300 mb-6">
+                    "I love how easy it is to see real-time results. The charts and visualizations make it simple to understand who's winning."
+                </p>
+
+                
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 flex items-center justify-center rounded-full text-white font-bold bg-indigo-600 shadow-md ring-2 ring-indigo-300">
+                        F
+                    </div>
+                    <div>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">Fatima H.</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Health Science, 2nd Year</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl hover:shadow-2xl transition duration-300 border border-gray-100 dark:border-gray-700">
+                <div class="flex space-x-0.5 mb-4 text-yellow-400">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                </div>
+
+                <p class="text-lg italic text-gray-700 dark:text-gray-300 mb-6">
+                    "As a student representative, I appreciate how this system has increased participation rates. The mobile-friendly design is excellent."
+                </p>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 flex items-center justify-center rounded-full text-white font-bold bg-teal-600 shadow-md ring-2 ring-teal-300">
+                        M
+                    </div>
+                    <div>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white">Ahmed J.</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">MBBS, 4th Year</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section class="relative py-24 overflow-hidden bg-gray-50 isolate">
+    
+    <div class="absolute top-0 left-1/4 -translate-x-1/2 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+    <div class="absolute bottom-0 right-1/4 translate-x-1/2 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+    
+    <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 brightness-100 contrast-150 mix-blend-multiply"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-6 lg:px-8">
+        
+        <div class="relative overflow-hidden rounded-3xl bg-white/70 border border-white/60 backdrop-blur-xl shadow-xl p-8 md:p-16 text-center group ring-1 ring-gray-900/5">
+            
+            <div class="absolute -inset-1 bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 rounded-3xl opacity-0 group-hover:opacity-50 transition duration-1000 blur-lg group-hover:duration-200"></div>
+
+            <div class="relative z-10 max-w-2xl mx-auto">
+                
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-xs font-medium mb-6 shadow-sm">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                    </span>
+                    Secure Voting Platform
+                </div>
+
+                <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
+                    Ready to Make Your 
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 animate-pulse">
+                        Voice Heard?
+                    </span>
+                </h2>
+
+                <p class="text-lg text-slate-600 mb-10 leading-relaxed">
+                    Join thousands of students already using our secure, encrypted voting platform. Register today to shape the future of your campus.
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">
+                    
+                    <a href="/register" class="group relative inline-flex items-center justify-center w-full sm:w-auto px-8 py-3.5 text-base font-bold text-white transition-all duration-200 bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 hover:shadow-indigo-600/40 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 overflow-hidden">
+                        <div class="absolute inset-0 w-full h-full -mt-1 rounded-lg opacity-30 bg-gradient-to-b from-transparent via-transparent to-black"></div>
+                        <span class="relative">Register Now</span>
+                        <svg class="w-5 h-5 ml-2 -mr-1 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                    </a>
+
+                    <a href="/login" class="w-full sm:w-auto px-8 py-3.5 text-base font-medium text-slate-700 transition-all duration-200 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:text-indigo-600 hover:border-indigo-200 shadow-sm hover:shadow-md backdrop-blur-sm">
+                        Log In
+                    </a>
+
+                </div>
+
+                <p class="mt-6 text-sm text-slate-500 flex items-center justify-center gap-1">
+                    <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Takes less than 2 minutes to verify your ID.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
 </div>
+
+<script>
+  // Staggered pop-in of "How voting works" cards when section enters viewport
+  (function() {
+    const cards = document.querySelectorAll('.step-card');
+    if (!cards.length) return;
+
+    function revealCards() {
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          card.classList.remove('opacity-0', 'scale-95');
+          card.classList.add('opacity-100', 'scale-100');
+        }, 150 * (index + 1));
+      });
+    }
+     
+    // Use IntersectionObserver so animation starts when user scrolls to the cards
+    const firstCard = cards[0];
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            revealCards();
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.3 });
+      observer.observe(firstCard);
+    } else {
+      // Fallback: reveal immediately
+      revealCards();
+    }
+  })();
+</script>
 
 {% if election_end_iso %}
 <script>

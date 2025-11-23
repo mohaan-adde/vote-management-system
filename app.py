@@ -6,60 +6,134 @@ from werkzeug.utils import secure_filename
 import time
 
 app = Flask(__name__)
+# IMPORTANT: Replace the default secret key in a production environment
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
-# For the browser we should use the public anon key. If you currently only
-# have SUPABASE_KEY set, ensure it is an anon key before exposing it.
+# For browser/frontend usage, ensure this is the public anon key.
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY", os.getenv("SUPABASE_KEY", ""))
 
-# Storage bucket for candidate photos (create this bucket in Supabase and make it public)
+# Storage bucket for candidate photos (MUST be a public bucket in Supabase)
 BUCKET_NAME = os.getenv("CANDIDATE_BUCKET", "candidate-photos")
 
+# -------------------- HELPER FUNCTIONS --------------------
 
 def get_election_end():
     """Return election end timestamp string in ISO format (or None if not set)."""
     try:
+        # Fetch the single settings row (assuming ID 1 is used for global settings)
         data = (
-            supabase.table("settings").select("election_end").limit(1).single().execute().data
+            supabase.table("settings").select("election_end").eq("id", 1).limit(1).single().execute().data
         )
         return data.get("election_end") if data else None
-    except Exception:
+    except Exception as e:
+        print(f"Error fetching election end: {e}")
         return None
 
 
 def election_is_active(now_dt=None):
+    """Checks if the current time is before the election end time."""
     end_iso = get_election_end()
     if not end_iso:
+        # If no end time is set, assume the election is always active
         return True
     try:
-        # Normalize Z to +00:00 for fromisoformat
+        # Normalize Z to +00:00 for fromisoformat and handle potential timezone issues
         end_dt = datetime.fromisoformat(end_iso.replace("Z", "+00:00"))
         now_dt = now_dt or datetime.now(timezone.utc)
         return now_dt < end_dt
-    except Exception:
+    except Exception as e:
+        print(f"Error checking election status: {e}. Defaulting to active.")
         return True
 
 
 def is_user_verified(email: str) -> bool:
+    """Checks the 'verified' status for a user profile."""
+    if email == "admin@gsu.edu":
+        # Admin is always considered verified for access
+        return True
     try:
+        # Fetch 'verified' status from the profiles table
         row = supabase.table("profiles").select("verified").eq("email", email).single().execute().data
         return bool(row and row.get("verified"))
-    except Exception:
+    except Exception as e:
+        print(f"Error checking user verification for {email}: {e}")
         return False
+
+def handle_photo_upload(file, name, existing_photo=None):
+    """Uploads a file to Supabase Storage and returns the public URL."""
+    if not file or not file.filename:
+        return existing_photo
+    
+    try:
+        ext = os.path.splitext(file.filename)[1].lower()
+        # Create a unique filename
+        fname = f"candidate_{int(time.time())}_{secure_filename(name)}{ext}"
+        
+        file_bytes = file.read()
+        print(f"[STORAGE] Uploading photo to bucket {BUCKET_NAME} as {fname}")
+        
+        # Upload the file
+        upload_response = supabase.storage.from_(BUCKET_NAME).upload(
+            file=file_bytes, 
+            path=fname, 
+            file_options={"content-type": file.mimetype, "upsert": True}
+        )
+        
+        # Get the public URL
+        public_url_response = supabase.storage.from_(BUCKET_NAME).get_public_url(fname)
+
+        photo_url = ""
+        try:
+            # Handle various possible response shapes from different Supabase SDK versions
+            if isinstance(public_url_response, str):
+                # SDK returns a string directly
+                photo_url = public_url_response
+            elif isinstance(public_url_response, dict):
+                # Fallback for dict responses
+                photo_url = public_url_response.get("publicUrl") or public_url_response.get("public_url") or public_url_response.get("publicURL") or ""
+            else:
+                # Some SDKs return an object with a 'data' attribute containing the URL
+                data = getattr(public_url_response, "data", None)
+                if isinstance(data, dict):
+                    photo_url = data.get("publicUrl") or data.get("public_url") or ""
+                else:
+                    # Last resort: try string conversion
+                    try:
+                        photo_url = str(public_url_response)
+                    except Exception:
+                        photo_url = ""
+        except Exception:
+            photo_url = ""
+        # Final fallback: Construct URL manually
+        if not photo_url and SUPABASE_URL:
+            photo_url = f"{SUPABASE_URL.rstrip('/')}/storage/v1/object/public/{BUCKET_NAME}/{fname}"
+
+        if not photo_url:
+             print(f"[STORAGE ERROR] Photo uploaded but public URL could not be determined.")
+             return existing_photo # Use existing or return None
+        
+        return photo_url
+        
+    except Exception as e:
+        print(f"[STORAGE ERROR] Failed to upload candidate photo: {repr(e)}")
+        flash("Failed to upload candidate photo to Supabase. Check server logs.", "error")
+        return existing_photo
+
 
 # -------------------- HOME --------------------
 @app.route("/")
 def home():
-    # Always show landing page (even when logged in)
+    """Landing page showing election statistics and top candidates."""
     candidates = []
     votes = []
     profiles = []
 
     try:
-        candidates = supabase.table("candidates").select("id,name,photo,votes").execute().data or []
+        # Select required candidate info and sort by votes in Python
+        candidates_raw = supabase.table("candidates").select("id,name,photo,votes").execute().data or []
     except Exception:
-        candidates = []
+        candidates_raw = []
 
     try:
         votes = supabase.table("votes").select("id").execute().data or []
@@ -67,21 +141,22 @@ def home():
         votes = []
 
     try:
+        # Profiles count is used for total registered
         profiles = supabase.table("profiles").select("id").execute().data or []
     except Exception:
         profiles = []
 
-    try:
-        candidates_sorted = sorted(candidates, key=lambda x: x.get("votes", 0) or 0, reverse=True)
-    except Exception:
-        candidates_sorted = candidates
-
+    # Calculate statistics
+    candidates_sorted = sorted(candidates_raw, key=lambda x: x.get("votes", 0) or 0, reverse=True)
     top_candidates = candidates_sorted[:3]
 
     total_registered = len(profiles)
     total_voted = len(votes)
-    max_votes = max((c.get("votes", 0) or 0) for c in candidates) if candidates else 0
-    turnout = int(round((total_voted * 100) / total_registered)) if total_registered else 0
+    max_votes = candidates_sorted[0].get("votes", 0) if candidates_sorted else 0
+    
+    turnout = 0
+    if total_registered > 0:
+        turnout = int(round((total_voted * 100) / total_registered))
 
     hero_stats = {
         "total_registered": total_registered,
@@ -100,63 +175,89 @@ def home():
 # -------------------- REGISTER --------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    """User registration route."""
     if request.method == "POST":
-        # Support either a single full name field or separate first/last name fields
         first_name = request.form.get("first_name", "").strip()
         last_name = request.form.get("last_name", "").strip()
         name = request.form.get("name", "").strip()
         if not name:
             name = (first_name + " " + last_name).strip()
+
         university_id = request.form.get("university_id", "").strip()
+        faculty = request.form.get("faculty", "").strip()
         email = request.form["email"]
         password = request.form["password"]
+
+        if not all([name, university_id, email, password]):
+             flash("Please fill out all required fields.", "error")
+             return redirect(url_for("register"))
+
+        # 🛑 1. Check if University ID is already used
         try:
+            existing_id = supabase.table("profiles").select("id").eq("university_id", university_id).execute()
+            if existing_id.data:
+                flash("This University ID is already registered. Please contact admin.", "error")
+                return redirect(url_for("register"))
+        except Exception as e:
+            print(f"Error checking University ID: {e}")
+            flash("Database error during ID check.", "error")
+            return redirect(url_for("register"))
+
+        try:
+            # 2. Create user via Auth
             response = supabase.auth.sign_up({"email": email, "password": password})
-            try:
-                supabase.table("profiles").insert({
-                    "email": email,
-                    "name": name,
-                    "university_id": university_id,
-                    "verified": False
-                }).execute()
-            except Exception:
-                pass
-            flash("Registration successful. Check your email to confirm your account. After confirming, please wait for admin verification before voting.", "success")
+
+            # 3. Save profile data
+            supabase.table("profiles").insert({
+                "email": email,
+                "name": name,
+                "faculty": faculty,
+                "university_id": university_id,
+                "verified": False # User needs admin verification
+            }).execute()
+
+            flash("Registration successful. Check your email for confirmation (if email confirmation is enabled on Supabase). Your account is now pending admin verification.", "success")
             return redirect(url_for("login"))
+
         except Exception as e:
             flash(f"Registration failed: {str(e)}", "error")
+            return redirect(url_for("register"))
+
     return render_template("register.html")
+
 
 # -------------------- LOGIN --------------------
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """User login route."""
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
         try:
             response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            user = response.user
+            
+            # Supabase Python SDK often puts the user object inside the session key
+            user = response.user if hasattr(response, 'user') else (response.session.user if hasattr(response, 'session') and response.session else None)
+            
             if user:
                 session["user"] = user.email
                 session["user_id"] = user.id
-                flash("Logged in successfully.", "success")
+                
+                # Special handling for Admin login
                 if user.email == "admin@gsu.edu":
+                    flash("Admin logged in successfully.", "success")
                     return redirect(url_for("admin_dashboard"))
-                # Ensure profile exists
-                try:
-                    prof = supabase.table("profiles").select("verified").eq("email", user.email).single().execute().data
-                except Exception:
-                    prof = None
-                if not prof:
-                    try:
-                        supabase.table("profiles").insert({"email": user.email, "verified": False}).execute()
-                    except Exception:
-                        pass
+                
+                # Ensure profile exists for non-admins and check verification status
                 if not is_user_verified(user.email):
+                    flash("Login successful. Account is pending admin verification.", "warning")
                     return redirect(url_for("pending_verification"))
+                
+                flash("Logged in successfully.", "success")
                 return redirect(url_for("vote"))
             else:
-                flash("Invalid credentials or unverified email.", "error")
+                flash("Login failed. Could not retrieve user session.", "error")
+        
         except Exception as e:
             msg = str(e)
             if "Invalid login credentials" in msg:
@@ -164,25 +265,26 @@ def login():
             elif "Email not confirmed" in msg:
                 flash("Please verify your email before logging in.", "warning")
             else:
-                flash("Login failed. Check your internet or Supabase setup.", "error")
+                print(f"Login Exception: {e}")
+                flash("Login failed. Check your internet or Supabase configuration.", "error")
+        
         return redirect(url_for("login"))
     return render_template("login.html")
 
 # -------------------- FORGOT PASSWORD --------------------
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
+    """Route to request a password reset email."""
     if request.method == "POST":
         email = request.form.get("email", "").strip()
         if not email:
             flash("Please enter your email address.", "warning")
             return redirect(url_for("forgot_password"))
         try:
-            # Real flow: Supabase sends reset email, then redirects back to our
-            # /update-password page where the user will set a new password.
             redirect_url = url_for("update_password", _external=True)
-            supabase.auth.reset_password_for_email(email, options={"redirect_to": redirect_url})
+            supabase.auth.reset_password_for_email(email, options={"redirectTo": redirect_url}) # Use redirectTo for modern Supabase
             flash("If that email exists, a password reset link has been sent. Open it to set a new password.", "info")
-        except Exception as e:
+        except Exception:
             flash("Could not send password reset email. Please try again later.", "error")
         return redirect(url_for("login"))
     return render_template("reset_password.html")
@@ -190,11 +292,7 @@ def forgot_password():
 
 @app.route("/update-password", methods=["GET"])
 def update_password():
-    """Password reset landing page after clicking the email link.
-
-    Supabase JS on the frontend will read the recovery token from the URL
-    and call updateUser with the new password.
-    """
+    """Password reset landing page after clicking the email link."""
     return render_template(
         "update_password.html",
         supabase_url=SUPABASE_URL,
@@ -204,6 +302,7 @@ def update_password():
 # -------------------- LOGOUT --------------------
 @app.route("/logout")
 def logout():
+    """User logout route."""
     try:
         supabase.auth.sign_out()
     except Exception:
@@ -216,232 +315,394 @@ def logout():
 # -------------------- PENDING VERIFICATION --------------------
 @app.route("/pending")
 def pending_verification():
+    """Page shown while waiting for admin verification."""
+    if 'user' not in session:
+        return redirect(url_for("login"))
+    
+    if is_user_verified(session.get('user')):
+        return redirect(url_for("vote"))
+        
     return render_template("pending_verification.html")
 
 
 # -------------------- CONTACT --------------------
 @app.route("/contact")
 def contact():
+    """Contact information page."""
     return render_template("contact.html")
 
 
 # -------------------- TERMS --------------------
 @app.route("/terms")
 def terms():
+    """Terms and conditions page."""
     return render_template("terms.html", no_nav=True)
 
 # -------------------- VOTING --------------------
 @app.route("/vote")
 def vote():
+    """Voting page, listing candidates and showing vote status."""
     if 'user' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-    # Haddii admin, u diid access vote page
-    if session['user'] == "admin@gsu.edu":
+    user_email = session['user']
+
+    # Admin check (should be handled by login redirect, but good for safety)
+    if user_email == "admin@gsu.edu":
         flash("Admin cannot vote.", "error")
         return redirect(url_for("admin_dashboard"))
 
-    user_email = session['user']
+    # Check if user is verified
     if not is_user_verified(user_email):
         flash("Your account is pending admin verification.", "warning")
         return redirect(url_for("pending_verification"))
 
-    candidates, has_voted = [], False
+    # Load candidates
     try:
         candidates = supabase.table("candidates").select("*").execute().data
-    except Exception:
+    except Exception as e:
+        print("CANDIDATE LOAD ERROR:", e)
         flash("Unable to load candidates.", "error")
+        candidates = []
 
+    # Check if user already voted (using 'email' column)
+    has_voted = False
     try:
-        vote_check = supabase.table("votes").select("id").eq("user_email", user_email).execute().data
+        vote_check = supabase.table("votes") \
+            .select("id") \
+            .eq("email", user_email) \
+            .execute().data
+
         if vote_check:
             has_voted = True
-    except Exception:
-        pass
 
+    except Exception as e:
+        print("VOTE CHECK ERROR:", e)
+        # Allow voting to proceed if check fails, but flash error
+        flash("Error checking your vote status. Proceed with caution.", "error")
+
+    # Sort candidates by votes
     try:
-        candidates = sorted(candidates, key=lambda x: x.get('votes', 0), reverse=True)
-    except Exception:
+        candidates = sorted(candidates, key=lambda x: x.get("votes", 0) or 0, reverse=True)
+    except:
         pass
 
-    return render_template("vote.html", candidates=candidates, user=user_email, has_voted=has_voted, election_end_iso=get_election_end())
+    return render_template(
+        "vote.html",
+        candidates=candidates,
+        user=user_email,
+        has_voted=has_voted,
+        election_end_iso=get_election_end(),
+        election_active=election_is_active() # Pass status to template for UI logic
+    )
+
 
 @app.route("/vote/<int:candidate_id>", methods=["POST"])
 def submit_vote(candidate_id):
+    """Handles the submission of a user's vote."""
     if 'user' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
-    # Admin-ka ma codeyn karo
-    if session['user'] == "admin@gsu.edu":
-        flash("Admin cannot vote.", "error")
-        return redirect(url_for("admin_dashboard"))
-
     email = session['user']
+    
+    if not is_user_verified(email):
+        flash("You must be a verified user to vote.", "warning")
+        return redirect(url_for("pending_verification"))
 
     if not election_is_active():
         flash("Voting period has ended.", "warning")
         return redirect(url_for("vote"))
 
     try:
-        existing = supabase.table("votes").select("id").eq("user_email", email).execute().data
+        # Check for existing vote transactionally
+        existing = supabase.table("votes").select("id").eq("email", email).execute().data
         if existing:
             flash("You have already voted!", "error")
             return redirect(url_for("vote"))
-    except Exception:
-        flash("Error checking your vote status.", "error")
+    except Exception as e:
+        print(f"VOTE CHECK ERROR: {e}")
+        flash("Error checking your vote status. Please try again.", "error")
         return redirect(url_for("vote"))
 
     try:
-        supabase.table("votes").insert({"user_email": email, "candidate_id": candidate_id}).execute()
-        supabase.rpc("increment_vote", {"cid": candidate_id}).execute()
+        # Record the vote and increment the candidate's vote count
+        supabase.table("votes").insert({"email": email, "candidate_id": candidate_id}).execute()
+        # RPC call is atomic and safer for increments
+        supabase.rpc("increment_vote", {"cid": candidate_id}).execute() 
         flash("Your vote has been recorded successfully!", "success")
-    except Exception:
-        flash("Failed to record your vote.", "error")
+    except Exception as e:
+        print("VOTE INSERT/RPC ERROR:", e)
+        flash("Failed to record your vote. It's possible you already voted or the election is closed.", "error")
 
     return redirect(url_for("vote"))
 
 # -------------------- RESULTS --------------------
 @app.route('/results')
 def results():
+    """Displays the current election results."""
     try:
+        # Get all candidates and sort by votes
         candidates = supabase.table('candidates').select('*').execute().data
-        candidates = sorted(candidates, key=lambda x: x['votes'], reverse=True)
-    except Exception:
+        candidates = sorted(candidates, key=lambda x: x.get('votes', 0) or 0, reverse=True)
+    except Exception as e:
+        print(f"RESULTS LOAD ERROR: {e}")
         candidates = []
         flash("Unable to load results.", "error")
-    return render_template('results.html', candidates=candidates)
+        
+    # Check if results should only be shown after election ends
+    show_live_results = True # Change this to False if you only want to show results after election_is_active() is False
+    
+    if not show_live_results and election_is_active():
+        flash("Results are not available until the voting period ends.", "info")
+        # Only show names/mottos, but zero out votes for display if not active
+        safe_candidates = [{**c, 'votes': 0} for c in candidates]
+        return render_template('results.html', candidates=safe_candidates, results_available=False)
+        
+    return render_template('results.html', candidates=candidates, results_available=True)
 
-# -------------------- ADMIN DASHBOARD --------------------
+from datetime import datetime, timezone
+
 @app.route("/admin", methods=["GET", "POST"])
 def admin_dashboard():
-    # Admin check
+    """Admin route with Dynamic Election Status (Upcoming → Active → Closed)."""
+
+    # -------------------------------
+    # 1. Security Check
+    # -------------------------------
     if 'user' not in session or session['user'] != "admin@gsu.edu":
         flash("Admin access only.", "error")
         return redirect(url_for("login"))
 
-    # Handle POST actions
+    # -------------------------------
+    # 2. POST REQUESTS (Create/Edit/Add Candidate)
+    # -------------------------------
     if request.method == "POST":
-        action = request.form.get("action", "add_candidate")
+        action = request.form.get("action")
 
-        if action == "add_candidate":
-            name = request.form["name"].strip()
-            motto = request.form["motto"].strip()
-            photo = request.form.get("photo", "").strip()
-            bio = request.form.get("bio", "").strip()
-            department = request.form.get("department", "").strip()
-            year_level = request.form.get("year_level", "").strip()
-            manifesto = request.form.get("manifesto", "").strip()
+        # CREATE or EDIT election
+        if action in ["create_election", "edit_election"]:
+            title = request.form.get("title", "").strip()
+            start_input = request.form.get("start_time", "").strip()
+            end_input = request.form.get("end_time", "").strip()
 
-            # Try upload to Supabase Storage if a file is provided
-            file = request.files.get("photo_file")
-            if file and file.filename:
-                try:
-                    ext = os.path.splitext(file.filename)[1].lower()
-                    fname = f"candidate_{int(time.time())}_{secure_filename(name)}{ext}"
-                    file_bytes = file.read()
-                    print("[ADD_CANDIDATE] Uploading photo to bucket", BUCKET_NAME, "as", fname)
-                    supabase.storage.from_(BUCKET_NAME).upload(fname, file_bytes, {"content-type": file.mimetype, "upsert": True})
-                    public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(fname)
-                    if isinstance(public_url, dict):
-                        data = public_url.get("data") or {}
-                        photo = (
-                            data.get("publicUrl")
-                            or public_url.get("publicUrl")
-                            or public_url.get("public_url")
-                            or photo
-                        )
-                    elif isinstance(public_url, str):
-                        photo = public_url
-                    # Final fallback: construct URL
-                    if not photo:
-                        base = os.getenv("SUPABASE_URL", "").rstrip("/")
-                        if base:
-                            photo = f"{base}/storage/v1/object/public/{BUCKET_NAME}/{fname}"
-                    if not photo:
-                        flash("Photo uploaded but public URL could not be determined.", "warning")
-                        print("[ADD_CANDIDATE] Could not determine public URL from", public_url)
-                except Exception as e:
-                    flash("Failed to upload candidate photo to Supabase. Check server logs.", "error")
-                    print("[ADD_CANDIDATE] Error uploading photo:", repr(e))
+            if not (title and start_input and end_input):
+                flash("Please fill all fields.", "error")
+                return redirect(url_for("admin_dashboard"))
 
-            if not photo:
-                photo = f"https://placehold.co/150x150/003049/ffffff?text={name[0:2].upper()}"
             try:
-                insert_payload = {
+                start_dt = datetime.fromisoformat(start_input)
+                end_dt = datetime.fromisoformat(end_input)
+            except ValueError:
+                flash("Invalid date format.", "error")
+                return redirect(url_for("admin_dashboard"))
+
+            if end_dt <= start_dt:
+                flash("End date must be after Start date.", "error")
+                return redirect(url_for("admin_dashboard"))
+
+            data = {
+                "title": title,
+                "description": request.form.get("description", ""),
+                "start_time": start_dt.isoformat(),
+                "end_time": end_dt.isoformat(),
+                "status": "Upcoming"  # Initial; dynamic will override
+            }
+
+            try:
+                if action == "create_election":
+                    supabase.table("elections").insert(data).execute()
+                    flash("Election created!", "success")
+                else:
+                    eid = request.form.get("election_id")
+                    supabase.table("elections").update(data).eq("id", eid).execute()
+                    flash("Election updated!", "success")
+
+            except Exception as e:
+                flash(f"Error: {str(e)}", "error")
+
+            return redirect(url_for("admin_dashboard"))
+
+        # ADD candidate
+        elif action == "add_candidate":
+            try:
+                name = request.form["name"]
+                eid = request.form["election_id"]
+
+                photo = f"https://placehold.co/150x150/003049/ffffff?text={name[:2].upper()}"
+
+                supabase.table("candidates").insert({
+                    "election_id": eid,
                     "name": name,
-                    "motto": motto,
-                    "photo": photo,
-                    "bio": bio,
-                    "department": department,
-                    "year_level": year_level,
-                    "manifesto": manifesto,
+                    "motto": request.form.get("motto", ""),
                     "votes": 0,
-                }
-                print("[ADD_CANDIDATE] Inserting candidate:", insert_payload)
-                result = supabase.table("candidates").insert(insert_payload).execute()
-                print("[ADD_CANDIDATE] Insert result:", getattr(result, "data", result))
-                flash("Candidate added successfully!", "success")
+                    "photo": photo
+                }).execute()
+
+                flash("Candidate added!", "success")
+
             except Exception as e:
-                flash(f"Could not add candidate: {str(e)}", "error")
-                print("[ADD_CANDIDATE] Error inserting candidate:", repr(e))
+                flash(f"Error: {str(e)}", "error")
+
             return redirect(url_for("admin_dashboard"))
 
-        if action == "update_settings":
-            election_end = request.form.get("election_end", "").strip()
+    # =====================================================
+    # 3. GET REQUEST — Dynamic Election Status & Formatting
+    # =====================================================
+
+    elections_data = (
+        supabase.table("elections")
+        .select("*")
+        .order("id", desc=True)
+        .execute()
+        .data or []
+    )
+
+    now_utc = datetime.now(timezone.utc)
+
+    for e in elections_data:
+        raw_start = e.get("start_time")
+        raw_end = e.get("end_time")
+
+        if raw_start and raw_end:
             try:
-                # Try upsert, fall back to insert
-                try:
-                    supabase.table("settings").upsert({"id": 1, "election_end": election_end}).execute()
-                except Exception:
-                    try:
-                        supabase.table("settings").delete().eq("id", 1).execute()
-                    except Exception:
-                        pass
-                    supabase.table("settings").insert({"id": 1, "election_end": election_end}).execute()
-                flash("Election end time updated.", "success")
-            except Exception as e:
-                flash(f"Failed to update settings: {str(e)}", "error")
-            return redirect(url_for("admin_dashboard"))
+                start_dt = datetime.fromisoformat(raw_start.replace("Z", "+00:00"))
+                end_dt = datetime.fromisoformat(raw_end.replace("Z", "+00:00"))
 
-    # Get candidates
+                # -----------------------
+                # AUTO STATUS UPDATE
+                # -----------------------
+                if now_utc < start_dt:
+                    status = "Upcoming"
+                elif start_dt <= now_utc <= end_dt:
+                    status = "Active"
+                else:
+                    status = "Closed"
+
+                # update DB only if status changed
+                if e["status"] != status:
+                    supabase.table("elections").update({"status": status}).eq("id", e["id"]).execute()
+
+                e["status"] = status
+
+                # Readable date format
+                e["start_time"] = start_dt.strftime("%d %b %Y, %I:%M %p")
+                e["end_time"] = end_dt.strftime("%d %b %Y, %I:%M %p")
+
+            except Exception as err:
+                print("Date Error:", err)
+                e["status"] = "Error"
+
+    # Active & Upcoming only (for dropdown)
+    active_elections = [x for x in elections_data if x["status"] in ["Active", "Upcoming"]]
+
+    # Candidates
+    candidates = supabase.table("candidates").select("*").execute().data or []
+
+    # Votes
+    votes = supabase.table("votes").select("*").execute().data or []
+    cand_map = {c["id"]: c["name"] for c in candidates}
+
+    voters_list = []
+    for v in votes:
+        vt = v.get("voted_at")
+        voters_list.append({
+            "user_email": v.get("email"),
+            "candidate_name": cand_map.get(v.get("candidate_id"), "Unknown"),
+            "voted_at": datetime.fromisoformat(vt.replace("Z", "+00:00")).strftime("%d %b, %I:%M %p") if vt else "-"
+        })
+
+    # Profiles
+    profiles = supabase.table("profiles").select("*").execute().data or []
+    unverified_count = sum(1 for p in profiles if not p.get("verified"))
+
+    return render_template(
+        "admin_dashboard.html",
+        elections=elections_data,
+        active_elections=active_elections,
+        candidates=candidates,
+        voters=voters_list,
+        profiles=profiles,
+        unverified_count=unverified_count
+    )
+
+
+
+# ======================================================================
+# 2. NEW ROUTES FOR USER MANAGEMENT (Ku dar qeybtan hoose faylkaaga)
+# ======================================================================
+
+@app.route('/admin/bulk-verify', methods=['POST'])
+def bulk_verify_users():
+    """Route to handle bulk verification of users."""
+    
+    # Security Check
+    if 'user' not in session or session['user'] != "admin@gsu.edu":
+        flash("Admin access only.", "error")
+        return redirect(url_for("login"))
+
+    # Get list of emails from checkboxes
+    selected_emails = request.form.getlist('emails')
+    
+    if not selected_emails:
+        flash('Fadlan dooro ugu yaraan hal qof.', 'warning')
+        return redirect(url_for('admin_dashboard'))
+
     try:
-        candidates = supabase.table("candidates").select("*").execute().data
-    except Exception:
-        candidates = []
+        # Supabase update: Update 'verified' to True for all emails in the list
+        response = supabase.table("profiles") \
+            .update({"verified": True}) \
+            .in_("email", selected_emails) \
+            .execute()
+            
+        flash(f'{len(selected_emails)} users have been verified successfully.', 'success')
+        
+    except Exception as e:
+        flash(f'Error verifying users: {str(e)}', 'error')
+        print(f"Bulk Verify Error: {e}")
 
-    # Get voters
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/admin/delete-user', methods=['POST'])
+def delete_user():
+    """Route to handle single user deletion."""
+    
+    # Security Check
+    if 'user' not in session or session['user'] != "admin@gsu.edu":
+        flash("Admin access only.", "error")
+        return redirect(url_for("login"))
+
+    email = request.form.get('email')
+    
+    if not email:
+        flash('Khalad: Email lama helin.', 'error')
+        return redirect(url_for('admin_dashboard'))
+
     try:
-        votes = supabase.table("votes").select("*").execute().data
-        voters = []
-        for v in votes:
-            candidate = supabase.table("candidates").select("name").eq("id", v["candidate_id"]).single().execute().data
-            voters.append({
-                "user_email": v["user_email"],
-                "candidate_name": candidate["name"] if candidate else "Unknown",
-                "voted_at": v["voted_at"]
-            })
-    except Exception:
-        voters = []
+        # Supabase delete: Remove the user from profiles table
+        supabase.table("profiles").delete().eq("email", email).execute()
+        
+        flash(f'User {email} deleted successfully.', 'success')
+    except Exception as e:
+        flash(f'Error deleting user: {str(e)}', 'error')
+        print(f"Delete Error: {e}")
 
-    # Get profiles
-    try:
-        profiles = supabase.table("profiles").select("email,name,university_id,verified").execute().data
-    except Exception:
-        profiles = []
-
-    return render_template("admin_dashboard.html", candidates=candidates, voters=voters, profiles=profiles, election_end_iso=get_election_end())
+    return redirect(url_for('admin_dashboard'))
 
 # -------------------- DELETE CANDIDATE --------------------
 @app.route("/admin/delete/<int:candidate_id>")
 def delete_candidate(candidate_id):
+    """Admin route to delete a candidate."""
     if 'user' not in session or session['user'] != "admin@gsu.edu":
         flash("Admin access only.", "error")
         return redirect(url_for("login"))
     try:
+        # Also delete associated votes (optional, depending on DB cascading rules)
+        supabase.table("votes").delete().eq("candidate_id", candidate_id).execute()
         supabase.table("candidates").delete().eq("id", candidate_id).execute()
-        flash("Candidate deleted successfully!", "success")
+        flash("Candidate and associated votes deleted successfully!", "success")
     except Exception as e:
         flash(f"Could not delete candidate: {str(e)}", "error")
     return redirect(url_for("admin_dashboard"))
@@ -449,55 +710,32 @@ def delete_candidate(candidate_id):
 # -------------------- EDIT CANDIDATE --------------------
 @app.route("/admin/edit/<int:candidate_id>", methods=["POST"])
 def edit_candidate(candidate_id):
+    """Admin route to edit an existing candidate."""
     if 'user' not in session or session['user'] != "admin@gsu.edu":
         flash("Admin access only.", "error")
         return redirect(url_for("login"))
 
     name = request.form["name"].strip()
     motto = request.form["motto"].strip()
-    photo = request.form.get("photo", "").strip()
     bio = request.form.get("bio", "").strip()
     department = request.form.get("department", "").strip()
     year_level = request.form.get("year_level", "").strip()
     manifesto = request.form.get("manifesto", "").strip()
-
+    
+    # Preserve current photo URL in case no new file is uploaded
+    current_photo_url = request.form.get("current_photo_url") 
     file = request.files.get("photo_file")
-    if file and file.filename:
-        try:
-            ext = os.path.splitext(file.filename)[1].lower()
-            fname = f"candidate_{int(time.time())}_{secure_filename(name)}{ext}"
-            file_bytes = file.read()
-            print("[EDIT_CANDIDATE] Uploading photo to bucket", BUCKET_NAME, "as", fname)
-            supabase.storage.from_(BUCKET_NAME).upload(fname, file_bytes, {"content-type": file.mimetype, "upsert": True})
-            public_url = supabase.storage.from_(BUCKET_NAME).get_public_url(fname)
-            if isinstance(public_url, dict):
-                data = public_url.get("data") or {}
-                photo = (
-                    data.get("publicUrl")
-                    or public_url.get("publicUrl")
-                    or public_url.get("public_url")
-                    or photo
-                )
-            elif isinstance(public_url, str):
-                photo = public_url
-            if not photo:
-                base = os.getenv("SUPABASE_URL", "").rstrip("/")
-                if base:
-                    photo = f"{base}/storage/v1/object/public/{BUCKET_NAME}/{fname}"
-            if not photo:
-                flash("Photo uploaded but public URL could not be determined.", "warning")
-                print("[EDIT_CANDIDATE] Could not determine public URL from", public_url)
-        except Exception as e:
-            flash("Failed to upload candidate photo to Supabase. Check server logs.", "error")
-            print("[EDIT_CANDIDATE] Error uploading photo:", repr(e))
-
-    if not photo:
-        photo = f"https://placehold.co/150x150/003049/ffffff?text={name[0:2].upper()}"
+    
+    # Handle photo upload or keep the existing one
+    new_photo_url = handle_photo_upload(file, name, existing_photo=current_photo_url)
+    
+    if not new_photo_url:
+        new_photo_url = f"https://placehold.co/150x150/003049/ffffff?text={name[0:2].upper()}"
 
     update_data = {
         "name": name,
         "motto": motto,
-        "photo": photo,
+        "photo": new_photo_url,
         "bio": bio,
         "department": department,
         "year_level": year_level,
@@ -506,8 +744,7 @@ def edit_candidate(candidate_id):
 
     try:
         print(f"[EDIT_CANDIDATE] Updating candidate {candidate_id} with:", update_data)
-        result = supabase.table("candidates").update(update_data).eq("id", candidate_id).execute()
-        print("[EDIT_CANDIDATE] Update result:", getattr(result, "data", result))
+        supabase.table("candidates").update(update_data).eq("id", candidate_id).execute()
         flash("Candidate updated successfully!", "success")
     except Exception as e:
         flash(f"Could not update candidate: {str(e)}", "error")
@@ -518,18 +755,26 @@ def edit_candidate(candidate_id):
 # -------------------- VERIFY USER (ADMIN) --------------------
 @app.route("/admin/verify", methods=["POST"])
 def admin_verify_user():
+    """Admin route to mark a user as verified."""
     if 'user' not in session or session['user'] != "admin@gsu.edu":
         flash("Admin access only.", "error")
         return redirect(url_for("login"))
+        
     email = request.form.get("email")
+    
     if not email:
+        flash("No email provided for verification.", "error")
         return redirect(url_for("admin_dashboard"))
+        
     try:
+        # Update the 'verified' column in the profiles table
         supabase.table("profiles").update({"verified": True}).eq("email", email).execute()
-        flash("User verified.", "success")
+        flash(f"User {email} verified successfully.", "success")
     except Exception as e:
         flash(f"Failed to verify user: {str(e)}", "error")
+        
     return redirect(url_for("admin_dashboard"))
+
 
 # -------------------- RUN APP --------------------
 if __name__ == "__main__":
