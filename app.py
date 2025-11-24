@@ -348,14 +348,19 @@ def vote():
 
     user_email = session['user']
 
-    # Admin check (should be handled by login redirect, but good for safety)
+    # Check if election is active
+    if not election_is_active():
+        flash("The election is currently closed. Results will be available soon.", "error")
+        return redirect(url_for("results"))
+
+    # Admin cannot vote
     if user_email == "admin@gsu.edu":
-        flash("Admin cannot vote.", "error")
+        flash("Admins are not allowed to vote.", "error")
         return redirect(url_for("admin_dashboard"))
 
-    # Check if user is verified
+    # Only verified users vote
     if not is_user_verified(user_email):
-        flash("Your account is pending admin verification.", "warning")
+        flash("Your account is still awaiting verification.", "warning")
         return redirect(url_for("pending_verification"))
 
     # Load candidates
@@ -363,26 +368,23 @@ def vote():
         candidates = supabase.table("candidates").select("*").execute().data
     except Exception as e:
         print("CANDIDATE LOAD ERROR:", e)
-        flash("Unable to load candidates.", "error")
+        flash("Unable to load candidates. Please try again.", "error")
         candidates = []
 
-    # Check if user already voted (using 'email' column)
-    has_voted = False
+    # Check if user already voted
     try:
         vote_check = supabase.table("votes") \
             .select("id") \
             .eq("email", user_email) \
             .execute().data
 
-        if vote_check:
-            has_voted = True
-
+        has_voted = True if vote_check else False
     except Exception as e:
         print("VOTE CHECK ERROR:", e)
-        # Allow voting to proceed if check fails, but flash error
-        flash("Error checking your vote status. Proceed with caution.", "error")
+        flash("Could not verify your voting status.", "error")
+        has_voted = False
 
-    # Sort candidates by votes
+    # Sort by votes
     try:
         candidates = sorted(candidates, key=lambda x: x.get("votes", 0) or 0, reverse=True)
     except:
@@ -394,49 +396,54 @@ def vote():
         user=user_email,
         has_voted=has_voted,
         election_end_iso=get_election_end(),
-        election_active=election_is_active() # Pass status to template for UI logic
+        election_active=election_is_active()
     )
 
 
 @app.route("/vote/<int:candidate_id>", methods=["POST"])
 def submit_vote(candidate_id):
-    """Handles the submission of a user's vote."""
+    """Handles voting."""
     if 'user' not in session:
         flash("Please log in first.", "warning")
         return redirect(url_for("login"))
 
     email = session['user']
-    
+
+    # Must be verified
     if not is_user_verified(email):
-        flash("You must be a verified user to vote.", "warning")
+        flash("You must be verified to vote.", "warning")
         return redirect(url_for("pending_verification"))
 
+    # Election must be active
     if not election_is_active():
-        flash("Voting period has ended.", "warning")
+        flash("Voting period has already ended.", "error")
         return redirect(url_for("vote"))
 
+    # Check if already voted
     try:
-        # Check for existing vote transactionally
         existing = supabase.table("votes").select("id").eq("email", email).execute().data
         if existing:
-            flash("You have already voted!", "error")
+            flash("You have already voted.", "warning")
             return redirect(url_for("vote"))
     except Exception as e:
-        print(f"VOTE CHECK ERROR: {e}")
-        flash("Error checking your vote status. Please try again.", "error")
+        print("VOTE CHECK ERROR:", e)
+        flash("Unable to check your previous vote. Please try again.", "error")
         return redirect(url_for("vote"))
 
+    # Record vote
     try:
-        # Record the vote and increment the candidate's vote count
         supabase.table("votes").insert({"email": email, "candidate_id": candidate_id}).execute()
-        # RPC call is atomic and safer for increments
-        supabase.rpc("increment_vote", {"cid": candidate_id}).execute() 
-        flash("Your vote has been recorded successfully!", "success")
+        supabase.rpc("increment_vote", {"cid": candidate_id}).execute()
+
+        flash("Your vote was successfully recorded!", "success")
     except Exception as e:
         print("VOTE INSERT/RPC ERROR:", e)
-        flash("Failed to record your vote. It's possible you already voted or the election is closed.", "error")
+
+        # Here we fix the repeated error you complained about
+        flash("Your vote could not be recorded. Please try again or contact admin.", "error")
 
     return redirect(url_for("vote"))
+
 
 # -------------------- RESULTS --------------------
 @app.route('/results')
@@ -462,7 +469,7 @@ def results():
         
     return render_template('results.html', candidates=candidates, results_available=True)
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin_dashboard():
@@ -492,6 +499,7 @@ def admin_dashboard():
                 return redirect(url_for("admin_dashboard"))
 
             try:
+                # Iska ilaaw Timezone-ka marka hore, qaado waqtiga sida uu yahay
                 start_dt = datetime.fromisoformat(start_input)
                 end_dt = datetime.fromisoformat(end_input)
             except ValueError:
@@ -502,12 +510,14 @@ def admin_dashboard():
                 flash("End date must be after Start date.", "error")
                 return redirect(url_for("admin_dashboard"))
 
+            # Halkan status-ka "Active" ka dhig haddii waqtiga la joogo
+            # Laakiin dynamic update-ka hoose ayaa saxaya mar walba
             data = {
                 "title": title,
                 "description": request.form.get("description", ""),
                 "start_time": start_dt.isoformat(),
                 "end_time": end_dt.isoformat(),
-                "status": "Upcoming"  # Initial; dynamic will override
+                "status": "Upcoming" 
             }
 
             try:
@@ -559,7 +569,8 @@ def admin_dashboard():
         .data or []
     )
 
-    now_utc = datetime.now(timezone.utc)
+    # ISTICMAAL LOCAL TIME (Naive) si looga fogaado khaladka Timezone-ka
+    now = datetime.now() 
 
     for e in elections_data:
         raw_start = e.get("start_time")
@@ -567,24 +578,33 @@ def admin_dashboard():
 
         if raw_start and raw_end:
             try:
-                start_dt = datetime.fromisoformat(raw_start.replace("Z", "+00:00"))
-                end_dt = datetime.fromisoformat(raw_end.replace("Z", "+00:00"))
+                # 1. Ka saar "Z" ama "+00:00" si aad u hesho waqti saafi ah (Naive)
+                # Tani waxay ka dhigeysaa waqtiga DB mid la mid ah waqtiga server-kaaga (Now)
+                start_dt = datetime.fromisoformat(raw_start.replace("Z", ""))
+                end_dt = datetime.fromisoformat(raw_end.replace("Z", ""))
+
+                # Remove timezone info if it exists (make it naive)
+                start_dt = start_dt.replace(tzinfo=None)
+                end_dt = end_dt.replace(tzinfo=None)
 
                 # -----------------------
-                # AUTO STATUS UPDATE
+                # AUTO STATUS UPDATE (FIXED)
                 # -----------------------
-                if now_utc < start_dt:
-                    status = "Upcoming"
-                elif start_dt <= now_utc <= end_dt:
-                    status = "Active"
+                # Hadda isbarbardhiggu waa sax (Labada dhinacba waa Naive)
+                
+                new_status = "Closed" # Default
+
+                if now < start_dt:
+                    new_status = "Upcoming"
+                elif start_dt <= now <= end_dt:
+                    new_status = "Active"
                 else:
-                    status = "Closed"
+                    new_status = "Closed"
 
-                # update DB only if status changed
-                if e["status"] != status:
-                    supabase.table("elections").update({"status": status}).eq("id", e["id"]).execute()
-
-                e["status"] = status
+                # Update DB only if status actually changed
+                if e["status"] != new_status:
+                    supabase.table("elections").update({"status": new_status}).eq("id", e["id"]).execute()
+                    e["status"] = new_status # Update local variable for display
 
                 # Readable date format
                 e["start_time"] = start_dt.strftime("%d %b %Y, %I:%M %p")
@@ -599,7 +619,7 @@ def admin_dashboard():
 
     # Candidates
     candidates = supabase.table("candidates").select("*").execute().data or []
-
+    
     # Votes
     votes = supabase.table("votes").select("*").execute().data or []
     cand_map = {c["id"]: c["name"] for c in candidates}
@@ -607,10 +627,19 @@ def admin_dashboard():
     voters_list = []
     for v in votes:
         vt = v.get("voted_at")
+        formatted_vote_time = "-"
+        if vt:
+            try:
+                # Format vote time safely
+                vote_dt = datetime.fromisoformat(vt.replace("Z", "")).replace(tzinfo=None)
+                formatted_vote_time = vote_dt.strftime("%d %b, %I:%M %p")
+            except:
+                formatted_vote_time = vt
+
         voters_list.append({
             "user_email": v.get("email"),
             "candidate_name": cand_map.get(v.get("candidate_id"), "Unknown"),
-            "voted_at": datetime.fromisoformat(vt.replace("Z", "+00:00")).strftime("%d %b, %I:%M %p") if vt else "-"
+            "voted_at": formatted_vote_time
         })
 
     # Profiles
