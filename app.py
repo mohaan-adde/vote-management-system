@@ -432,15 +432,46 @@ def submit_vote(candidate_id):
 
     # Record vote
     try:
-        supabase.table("votes").insert({"email": email, "candidate_id": candidate_id}).execute()
-        supabase.rpc("increment_vote", {"cid": candidate_id}).execute()
+        # 1. Fetch candidate details to get election_id and current votes
+        print(f"[VOTE] Fetching details for candidate {candidate_id}")
+        candidate_res = supabase.table("candidates").select("election_id, votes").eq("id", candidate_id).single().execute()
+        
+        if not candidate_res.data:
+            raise Exception("Candidate not found")
+            
+        election_id = candidate_res.data.get("election_id")
+        current_votes = candidate_res.data.get("votes", 0)
+        if current_votes is None:
+            current_votes = 0
+
+        if not election_id:
+            raise Exception("Candidate is not linked to an election ID")
+
+        # 2. Insert the vote record WITH election_id
+        print(f"[VOTE] Attempting to insert vote for {email} -> candidate {candidate_id} (Election {election_id})")
+        vote_data = {
+            "email": email, 
+            "candidate_id": candidate_id,
+            "election_id": election_id
+        }
+        supabase.table("votes").insert(vote_data).execute()
+        print("[VOTE] Vote inserted successfully.")
+        
+        # 3. Increment and update
+        new_vote_count = current_votes + 1
+        print(f"[VOTE] Updating votes from {current_votes} to {new_vote_count}")
+        
+        supabase.table("candidates").update({"votes": new_vote_count}).eq("id", candidate_id).execute()
+        print("[VOTE] Candidate vote count updated.")
 
         flash("Your vote was successfully recorded!", "success")
     except Exception as e:
-        print("VOTE INSERT/RPC ERROR:", e)
-
-        # Here we fix the repeated error you complained about
-        flash("Your vote could not be recorded. Please try again or contact admin.", "error")
+        print(f"VOTE ERROR: {type(e).__name__}: {str(e)}")
+        # Check for specific Supabase errors
+        if "duplicate key" in str(e).lower():
+             flash("You have already voted (duplicate check).", "warning")
+        else:
+             flash(f"Error recording vote: {str(e)}", "error")
 
     return redirect(url_for("vote"))
 
