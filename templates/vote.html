@@ -1,215 +1,210 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="relative min-h-screen bg-gray-100 dark-mode:bg-gray-800 transition-colors duration-500">
-  <div class="relative z-10 p-8">
+<div class="min-h-screen bg-gray-50 dark-mode:bg-gray-900 transition-colors duration-500 py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-6xl mx-auto">
     
+    <!-- HEADER -->
+    <div class="text-center mb-12">
+      <h2 class="text-4xl font-extrabold text-gray-900 dark-mode:text-white mb-2">
+        🗳️ Election Center
+      </h2>
+      <p class="text-lg text-gray-600 dark-mode:text-gray-300">
+        Cast your vote for the future leaders.
+      </p>
+    </div>
+
+    <!-- FLASH MESSAGES -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <div class="max-w-2xl mx-auto mb-6">
+        <div class="max-w-2xl mx-auto mb-8 space-y-2">
           {% for message in messages %}
-            <div class="p-4 mb-2 text-sm text-red-700 bg-red-100 rounded-lg border border-red-300 text-center" role="alert">
-              <span class="font-medium">Alert:</span> {{ message }}
+            <div class="p-4 rounded-lg bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 shadow-sm" role="alert">
+              <span class="font-bold">Notice:</span> {{ message }}
             </div>
           {% endfor %}
         </div>
       {% endif %}
     {% endwith %}
 
-    <h2 class="text-3xl font-bold text-center mb-3 text-white-900 dark-mode:text-white">
-      Doorashada Gudoomiyaha Ardayda
-    </h2>
+    <!-- 1. ACTIVE ELECTIONS -->
+    {% if active_elections %}
+      <div class="mb-16">
+        <h3 class="text-2xl font-bold text-gray-800 dark-mode:text-white mb-6 border-b-2 border-green-500 inline-block pb-1">
+          🟢 Active Elections
+        </h3>
+        
+        <div class="space-y-12">
+          {% for election in active_elections %}
+          <div class="bg-white dark-mode:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark-mode:border-gray-700">
+            <!-- Election Header -->
+            <div class="bg-indigo-600 p-6 text-white flex justify-between items-center flex-wrap gap-4">
+               <div>
+                  <h4 class="text-2xl font-bold">{{ election.title }}</h4>
+                  <p class="opacity-90 text-sm mt-1">{{ election.description }}</p>
+               </div>
+               <div class="text-right">
+                  <div class="text-xs font-semibold uppercase opacity-75">Ends At</div>
+                  <div class="font-mono font-bold text-lg bg-indigo-700 px-3 py-1 rounded inline-block mt-1">
+                    {{ election.formatted_end }}
+                  </div>
+               </div>
+            </div>
 
-    {% if election_end_iso %}
-    <div class="max-w-2xl mx-auto mb-8 p-3 rounded-lg border bg-white dark-mode:bg-gray-700 dark-mode:border-gray-600 text-center shadow-sm">
-      <div class="flex items-center justify-center gap-2">
-        <svg class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 6a9 9 0 100 18 9 9 0 000-18z"/>
-        </svg>
-        <span class="font-semibold text-gray-700 dark-mode:text-gray-200">Voting closes in:</span>
-        <span id="vote-countdown" class="font-mono font-bold text-indigo-600 dark-mode:text-indigo-400 text-lg">Loading...</span>
+            <!-- Candidates Grid -->
+            <div class="p-6 md:p-8 bg-gray-50 dark-mode:bg-gray-900/50">
+               {% if candidates_map[election.id] %}
+               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {% for c in candidates_map[election.id] %}
+                 <div class="bg-white dark-mode:bg-gray-800 rounded-xl shadow border border-gray-200 dark-mode:border-gray-700 p-5 hover:shadow-lg transition-shadow duration-300 relative group">
+                    
+                    <button onclick='openCandidateModal({{ c | tojson }})' class="absolute top-3 right-3 text-gray-400 hover:text-indigo-600 transition">
+                      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
+
+                    <div class="flex flex-col items-center text-center">
+                       <img src="{{ c.photo or 'https://placehold.co/150' }}" alt="{{ c.name }}" 
+                            class="w-24 h-24 rounded-full object-cover ring-4 ring-indigo-50 dark-mode:ring-gray-600 mb-4 group-hover:scale-105 transition-transform">
+                       
+                       <h5 class="text-lg font-bold text-gray-900 dark-mode:text-white">{{ c.name }}</h5>
+                       <p class="text-sm text-yellow-600 dark-mode:text-yellow-400 italic mb-4">"{{ c.motto }}"</p>
+                       
+                       {% if votes_map[election.id] %}
+                         <button disabled class="w-full py-2 rounded-lg bg-gray-200 text-gray-500 font-bold cursor-not-allowed">
+                           voted
+                         </button>
+                       {% else %}
+                         <form action="/vote/{{ c.id }}" method="POST" class="w-full">
+                           <button type="submit" onclick="return confirm('Vote for {{ c.name }}? This cannot be undone.')"
+                                   class="w-full py-2 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all transform active:scale-95">
+                             Vote
+                           </button>
+                         </form>
+                       {% endif %}
+                    </div>
+                 </div>
+                 {% endfor %}
+               </div>
+               {% else %}
+                  <p class="text-gray-500 italic text-center">No candidates listed for this election.</p>
+               {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
       </div>
-    </div>
     {% endif %}
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {% for c in candidates %}
-      {% set rank = loop.index %}
-      {% set ring = 'ring-gray-300' %}
-      {% if rank == 1 %}{% set ring = 'ring-yellow-400' %}{% elif rank == 2 %}{% set ring = 'ring-gray-400' %}{% elif rank == 3 %}{% set ring = 'ring-amber-700' %}{% endif %}
-
-      <div class="relative bg-white dark-mode:bg-gray-700 p-6 rounded-xl text-center shadow-lg transition-transform hover:scale-105 duration-300">
-        
-        {% if rank <= 10 %}
-        <div class="absolute -top-3 -left-3">
-          {% if rank == 1 %}
-            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700 border border-yellow-300 shadow-sm">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21l4-2 4 2V5a2 2 0 00-2-2H10a2 2 0 00-2 2z"/></svg>
-              Winner
-            </span>
-          {% elif rank in [2,3] %}
-            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">#{{ rank }}</span>
-          {% else %}
-            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 border border-indigo-300">#{{ rank }}</span>
-          {% endif %}
-        </div>
-        {% endif %}
-
-        <button type="button"
-                class="absolute top-2 right-2 text-gray-400 hover:text-indigo-600 transition-colors read-more-btn"
-                aria-label="Read more about {{ c.name }}"
-                data-name="{{ c.name }}"
-                data-motto="{{ c.motto }}"
-                data-bio="{{ c.bio or '' }}"
-                data-department="{{ c.department or '' }}"
-                data-year_level="{{ c.year_level or '' }}"
-                data-manifesto="{{ c.manifesto or '' }}">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {% set photo_url = c.photo or ('https://placehold.co/150x150/003049/ffffff?text=' ~ (c.name[0:2]|upper)) %}
-        <img src="{{ photo_url }}" alt="{{ c.name }}" class="w-32 h-32 object-cover mx-auto rounded-full mb-4 ring-4 {{ ring }}">
-
-        <h3 class="text-xl font-bold text-gray-900 dark-mode:text-white">{{ c.name }}</h3>
-        <p class="italic mb-3 text-yellow-600 dark-mode:text-yellow-400 text-sm">"{{ c.motto }}"</p>
-
-        <div class="mt-4">
-          {% if has_voted %}
-            <button class="w-full py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed font-semibold shadow-inner" disabled>
-              Already Voted
-            </button>
-          {% else %}
-            <form action="/vote/{{ c.id }}" method="POST">
-              <button type="submit" class="vote-submit-btn w-full py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors duration-200 font-semibold shadow-md">
-                Vote
-              </button>
-            </form>
-          {% endif %}
+    <!-- 2. UPCOMING ELECTIONS -->
+    {% if upcoming_elections %}
+      <div class="mb-16">
+        <h3 class="text-2xl font-bold text-gray-800 dark-mode:text-white mb-6 border-b-2 border-blue-500 inline-block pb-1">
+          ⏳ Upcoming Elections
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+           {% for ur in upcoming_elections %}
+           <div class="bg-blue-50 dark-mode:bg-gray-800 rounded-xl p-6 border-l-4 border-blue-500 shadow-sm">
+              <h4 class="text-xl font-bold text-gray-800 dark-mode:text-white">{{ ur.title }}</h4>
+              <p class="text-gray-600 dark-mode:text-gray-300 mb-2">{{ ur.description }}</p>
+              <div class="text-sm font-semibold text-blue-700 dark-mode:text-blue-400">
+                 Starts: {{ ur.formatted_start }}
+              </div>
+           </div>
+           {% endfor %}
         </div>
       </div>
-      {% endfor %}
-    </div>
+    {% endif %}
+
+    <!-- 3. CLOSED ELECTIONS -->
+    {% if closed_elections %}
+      <div>
+        <h3 class="text-2xl font-bold text-gray-800 dark-mode:text-white mb-6 border-b-2 border-gray-400 inline-block pb-1">
+          🔒 Closed Elections
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+           {% for cl in closed_elections %}
+           <div class="bg-gray-100 dark-mode:bg-gray-800 rounded-xl p-6 border border-gray-200 dark-mode:border-gray-700 opacity-75 hover:opacity-100 transition-opacity">
+              <h4 class="text-lg font-bold text-gray-700 dark-mode:text-gray-200">{{ cl.title }}</h4>
+              <p class="text-gray-500 text-sm mb-3">Ended: {{ cl.formatted_end }}</p>
+              <a href="/results" class="text-indigo-600 font-semibold text-sm hover:underline">View Results &rarr;</a>
+           </div>
+           {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    {% if not active_elections and not upcoming_elections and not closed_elections %}
+      <div class="text-center py-20">
+         <div class="text-6xl mb-4">📭</div>
+         <h3 class="text-xl font-bold text-gray-600 dark-mode:text-gray-400">No elections found at this time.</h3>
+      </div>
+    {% endif %}
+
   </div>
 </div>
 
-{% if election_end_iso %}
-<script>
-  (function(){
-    const el = document.getElementById('vote-countdown');
-    const end = new Date('{{ election_end_iso }}');
-    const voteButtons = document.querySelectorAll('.vote-submit-btn');
-
-    function disableVoting() {
-        el.textContent = 'Voting Closed';
-        el.classList.add('text-red-600');
-        
-        voteButtons.forEach(btn => {
-            btn.disabled = true;
-            btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-            btn.classList.add('bg-gray-400', 'cursor-not-allowed');
-            btn.innerText = 'Election Closed';
-        });
-    }
-
-    function tick(){
-      const now = new Date();
-      let ms = end - now;
-
-      // Haddii waqtiga uu dhamaado ama ka yaryahay 0
-      if (isNaN(ms) || ms <= 0){ 
-          disableVoting(); 
-          return; 
-      }
-
-      const d = Math.floor(ms/86400000); ms%=86400000;
-      const h = Math.floor(ms/3600000); ms%=3600000;
-      const m = Math.floor(ms/60000); ms%=60000;
-      const s = Math.floor(ms/1000);
-      
-      el.textContent = `${d}d ${h}h ${m}m ${s}s`;
-    }
-
-    // Run immediately and then every second
-    tick();
-    const timer = setInterval(tick, 1000);
-  })();
-</script>
-{% endif %}
-
-<div id="candidateModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 backdrop-blur-sm">
-  <div class="bg-white dark-mode:bg-gray-800 rounded-lg shadow-2xl max-w-lg w-full p-6 relative transform transition-all scale-100">
-    <button id="candidateModalClose" type="button" class="absolute top-4 right-4 text-gray-500 hover:text-red-500 transition-colors">
-      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-    </button>
-    
-    <h3 id="modal_name" class="text-2xl font-bold mb-2 text-gray-900 dark-mode:text-white"></h3>
-    <div class="w-16 h-1 bg-yellow-500 mb-4 rounded"></div>
-    
-    <p id="modal_motto" class="italic mb-4 text-lg text-yellow-600 dark-mode:text-yellow-400 border-l-4 border-yellow-500 pl-3"></p>
-    
-    <div class="space-y-3 text-sm text-gray-700 dark-mode:text-gray-300">
-      <p id="modal_bio" class="leading-relaxed"></p>
-      <div class="grid grid-cols-2 gap-4 bg-gray-50 dark-mode:bg-gray-700 p-3 rounded-lg">
-          <p id="modal_department" class="font-semibold"></p>
-          <p id="modal_year" class="font-semibold"></p>
-      </div>
-      <div class="mt-4">
-        <h4 class="font-bold text-gray-900 dark-mode:text-white mb-1">Manifesto:</h4>
-        <p id="modal_manifesto" class="leading-relaxed whitespace-pre-wrap"></p>
-      </div>
+<!-- CANDIDATE DETAILS MODAL -->
+<div id="cModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4 backdrop-blur-sm">
+ <div class="bg-white dark-mode:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100">
+    <div class="relative h-32 bg-indigo-600">
+       <button type="button" onclick="closeModal()" class="absolute top-4 right-4 text-white hover:text-red-200 transition">
+          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+       </button>
+       <div class="absolute -bottom-12 left-6">
+           <img id="m_photo" src="" class="w-24 h-24 rounded-full border-4 border-white dark-mode:border-gray-800 bg-white object-cover shadow-md">
+       </div>
     </div>
-  </div>
+    
+    <div class="pt-14 px-6 pb-6">
+       <h3 id="m_name" class="text-2xl font-bold text-gray-900 dark-mode:text-white"></h3>
+       <p id="m_motto" class="text-yellow-600 dark-mode:text-yellow-400 italic text-lg mb-4"></p>
+       
+       <div class="bg-gray-50 dark-mode:bg-gray-700/50 p-4 rounded-xl space-y-2 text-sm text-gray-700 dark-mode:text-gray-300">
+          <p><span class="font-semibold text-gray-900 dark-mode:text-white">Bio:</span> <span id="m_bio"></span></p>
+          <div class="flex gap-4">
+             <p><span class="font-semibold text-gray-900 dark-mode:text-white">Dept:</span> <span id="m_dept"></span></p>
+             <p><span class="font-semibold text-gray-900 dark-mode:text-white">Year:</span> <span id="m_year"></span></p>
+          </div>
+       </div>
+
+       <div class="mt-4">
+          <h4 class="font-bold text-gray-900 dark-mode:text-white mb-2">Manifesto</h4>
+          <p id="m_manifesto" class="text-sm text-gray-600 dark-mode:text-gray-300 leading-relaxed whitespace-pre-wrap max-h-40 overflow-y-auto"></p>
+       </div>
+       
+       <div class="mt-6 text-right">
+          <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 font-medium transition">Close</button>
+       </div>
+    </div>
+ </div>
 </div>
 
 <script>
-  // Read more modal logic
-  (function(){
-    const buttons = document.querySelectorAll('.read-more-btn');
-    const modal = document.getElementById('candidateModal');
-    const closeBtn = document.getElementById('candidateModalClose');
-    const nameEl = document.getElementById('modal_name');
-    const mottoEl = document.getElementById('modal_motto');
-    const bioEl = document.getElementById('modal_bio');
-    const deptEl = document.getElementById('modal_department');
-    const yearEl = document.getElementById('modal_year');
-    const manEl = document.getElementById('modal_manifesto');
+ function openCandidateModal(c) {
+     document.getElementById('m_photo').src = c.photo || 'https://placehold.co/150';
+     document.getElementById('m_name').textContent = c.name;
+     document.getElementById('m_motto').textContent = c.motto ? `"${c.motto}"` : '';
+     document.getElementById('m_bio').textContent = c.bio || 'N/A';
+     document.getElementById('m_dept').textContent = c.department || 'N/A';
+     document.getElementById('m_year').textContent = c.year_level || 'N/A';
+     document.getElementById('m_manifesto').textContent = c.manifesto || 'No manifesto provided.';
+     
+     const modal = document.getElementById('cModal');
+     modal.classList.remove('hidden');
+     modal.classList.add('flex');
+ }
 
-    function openModal(data){
-      nameEl.textContent = data.name || '';
-      mottoEl.textContent = data.motto ? `"${data.motto}"` : '';
-      bioEl.textContent = data.bio ? `${data.bio}` : 'No bio provided.';
-      deptEl.textContent = data.department ? `Dept: ${data.department}` : '';
-      yearEl.textContent = data.year_level ? `Year: ${data.year_level}` : '';
-      manEl.textContent = data.manifesto ? `${data.manifesto}` : 'No manifesto provided.';
-
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
-
-    function closeModal(){
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        openModal({
-          name: btn.dataset.name,
-          motto: btn.dataset.motto,
-          bio: btn.dataset.bio,
-          department: btn.dataset.department,
-          year_level: btn.dataset.year_level,
-          manifesto: btn.dataset.manifesto,
-        });
-      });
-    });
-
-    if (closeBtn) closeBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-  })();
+ function closeModal() {
+     const modal = document.getElementById('cModal');
+     modal.classList.add('hidden');
+     modal.classList.remove('flex');
+ }
+ 
+ window.onclick = function(e) {
+     const modal = document.getElementById('cModal');
+     if (e.target == modal) {
+         closeModal();
+     }
+ }
 </script>
 {% endblock %}

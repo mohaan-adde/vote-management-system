@@ -1,136 +1,256 @@
 {% extends "base.html" %}
 
-{% block title %}Voting Results{% endblock %}
+{% block title %}Results | Official{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-    
-    {% set total_votes_cast = candidates | sum(attribute='votes') %}
+<!-- Confetti Library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <div class="flex flex-col md:flex-row justify-between items-center mb-10 bg-white dark-mode:bg-gray-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark-mode:border-gray-700">
-        <div>
-            <div class="flex items-center gap-3 mb-1">
-                <h2 class="text-2xl font-bold text-slate-900 dark-mode:text-white">Live Results</h2>
-                <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                </span>
-            </div>
-            <p class="text-slate-500 dark-mode:text-slate-400 text-sm">Real-time vote tracking dashboard</p>
-        </div>
-        <div class="mt-4 md:mt-0 text-right">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Votes Cast</div>
-            <div class="text-2xl font-mono font-bold text-indigo-600 dark-mode:text-indigo-400">
-                {{ total_votes_cast }}
-            </div>
-        </div>
+<div class="min-h-screen bg-gray-50 font-sans py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
+
+    <!-- Background Decor (Gradient Blobs - Light Version) -->
+    <div
+        class="absolute top-0 left-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob">
+    </div>
+    <div
+        class="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000">
+    </div>
+    <div
+        class="absolute -bottom-32 left-20 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000">
     </div>
 
-    <div class="space-y-5">
-        {% for c in candidates %}
-        {% set rank = loop.index %}
-        
-        {# Xisaabinta Boqolleyda Dynamic ah #}
-        {% if total_votes_cast > 0 %}
-            {% set percentage = ((c.votes / total_votes_cast) * 100) %}
-        {% else %}
-            {% set percentage = 0 %}
-        {% endif %}
-        
-        <div class="group relative bg-white dark-mode:bg-gray-800 rounded-xl p-5 shadow-sm border border-slate-100 dark-mode:border-gray-700 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-indigo-100 dark-mode:hover:border-gray-600 mt-6">
-            
-            {% if rank == 1 %}
-                <div class="absolute inset-y-0 left-0 w-1.5 bg-yellow-400 rounded-l-xl shadow-[0_0_15px_rgba(250,204,21,0.5)]"></div>
-            {% elif rank == 2 %}
-                <div class="absolute inset-y-0 left-0 w-1.5 bg-slate-300 rounded-l-xl"></div>
-            {% elif rank == 3 %}
-                <div class="absolute inset-y-0 left-0 w-1.5 bg-amber-600 rounded-l-xl"></div>
-            {% endif %}
+    <div class="max-w-7xl mx-auto relative z-10">
 
-            <div class="flex flex-col md:flex-row items-center gap-6">
-                
-                <div class="flex items-center w-full md:w-auto flex-shrink-0">
-                    
-                    <div class="w-12 flex-shrink-0 text-center mr-4">
-                        {% if rank == 1 %}
-                            <div class="h-10 w-10 mx-auto bg-yellow-100 text-yellow-700 rounded-full flex items-center justify-center font-bold text-lg ring-4 ring-yellow-50 shadow-md">1</div>
-                        {% elif rank == 2 %}
-                            <div class="h-9 w-9 mx-auto bg-slate-100 text-slate-700 rounded-full flex items-center justify-center font-bold text-lg">2</div>
-                        {% elif rank == 3 %}
-                            <div class="h-9 w-9 mx-auto bg-orange-50 text-amber-700 rounded-full flex items-center justify-center font-bold text-lg">3</div>
+        <div class="text-center mb-16">
+            <h2 class="text-5xl font-extrabold text-gray-900 mb-4 drop-shadow-sm tracking-tight">
+                Election Results
+            </h2>
+            <p class="text-gray-600 text-lg font-medium">Live Updates & Official Count</p>
+        </div>
+
+        {% if results_by_election %}
+        <div class="space-y-20">
+            {% for item in results_by_election %}
+            {% set election = item.election %}
+            {% set candidates = item.candidates %}
+            {% set total_votes = candidates | sum(attribute='votes') %}
+            {% set winner = candidates[0] if candidates else None %}
+            {% set is_closed = (election.status == 'Closed') or (election.status != 'Upcoming' and election.status !=
+            'Active') %}
+
+            <!-- ELECTION CARD -->
+            <div class="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden">
+
+                <!-- Header -->
+                <div
+                    class="p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h3 class="text-3xl font-bold text-gray-900 mb-2">{{ election.title }}</h3>
+                        <p class="text-gray-500">{{ election.description }}</p>
+                    </div>
+                    <div class="mt-4 md:mt-0 text-right">
+                        {% if is_closed %}
+                        <span
+                            class="px-4 py-1 rounded-full bg-red-100 text-red-600 text-sm font-bold border border-red-200">CLOSED</span>
                         {% else %}
-                            <div class="text-slate-400 font-semibold text-lg">#{{ rank }}</div>
-                        {% endif %}
-                    </div>
-
-                    <div class="relative">
-                        {% if rank == 1 %}
-                        <div class="absolute -top-7 left-1/2 transform -translate-x-1/2 z-10 animate-bounce-slow">
-                             <svg class="w-8 h-8 text-yellow-400 drop-shadow-md filter" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"></path>
-                             </svg>
-                        </div>
-                        {% endif %}
-
-                        {% set photo_url = c.photo or ('https://ui-avatars.com/api/?name=' ~ c.name ~ '&background=random&color=fff') %}
-                        
-                        <img src="{{ photo_url }}" alt="{{ c.name }}" 
-                             class="w-16 h-16 rounded-full object-cover shadow-md ring-4 
-                             {% if rank == 1 %} ring-yellow-400 ring-offset-2 {% else %} ring-white dark-mode:ring-gray-700 {% endif %}">
-                    </div>
-                </div>
-
-                <div class="flex-grow text-center md:text-left w-full pt-2 md:pt-0">
-                    <h3 class="text-xl font-bold text-slate-900 dark-mode:text-white group-hover:text-indigo-600 transition-colors">
-                        {{ c.name }}
-                        {% if rank == 1 %}
-                        <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-yellow-200 to-yellow-500 text-yellow-900 shadow-sm">
-                            🏆 Winner
+                        <span
+                            class="px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold border border-green-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-600 animate-pulse"></span> LIVE
                         </span>
                         {% endif %}
-                    </h3>
-                    <p class="text-sm text-slate-500 dark-mode:text-slate-400 italic">"{{ c.motto }}"</p>
-                </div>
-
-                <div class="w-full md:w-1/3 flex flex-col justify-center">
-                    <div class="flex justify-between items-end mb-2">
-                        <span class="text-2xl font-bold text-slate-900 dark-mode:text-white">{{ c.votes }} <span class="text-sm font-normal text-slate-400">votes</span></span>
-                        <span class="text-sm font-semibold text-indigo-600 dark-mode:text-indigo-400">{{ percentage | round(1) }}%</span>
-                    </div>
-                    
-                    <div class="w-full bg-slate-100 dark-mode:bg-gray-700 rounded-full h-3 overflow-hidden shadow-inner">
-                        {% set bar_color = 'bg-indigo-600' %}
-                        {% if rank == 1 %}{% set bar_color = 'bg-gradient-to-r from-yellow-400 to-yellow-600' %}
-                        {% elif rank == 2 %}{% set bar_color = 'bg-slate-400' %}
-                        {% elif rank == 3 %}{% set bar_color = 'bg-amber-600' %}
-                        {% endif %}
-                        
-                        <div class="h-full rounded-full transition-all duration-1000 ease-out {{ bar_color }} relative" 
-                             style="width: {{ percentage }}%;">
-                                <div class="absolute top-0 left-0 bottom-0 right-0 bg-white opacity-20" style="background: linear-gradient(to bottom, rgba(255,255,255,0.4), rgba(255,255,255,0));"></div>
-                             </div>
+                        <div class="mt-2 text-2xl font-mono text-indigo-600 font-bold">{{ total_votes }} Votes</div>
+                        <!-- DEBUG INFO (Remove later) -->
+                        <div class="text-xs text-gray-400 mt-1">Status: {{ election.status }}, Closed: {{ is_closed }}
+                        </div>
                     </div>
                 </div>
 
+                <!-- Candidates List -->
+                <div class="p-8 space-y-6">
+                    {% for c in candidates %}
+                    {% set rank = loop.index %}
+                    {% set percent = ((c.votes / total_votes * 100) | round(1)) if total_votes > 0 else 0 %}
+
+                    <!-- Winner Row (Highlight) -->
+                    {% if rank == 1 and is_closed %}
+                    <div onclick="triggerCelebration(this)" data-name="{{ c.name }}" data-photo="{{ c.photo }}"
+                        data-msg="{{ election.winner_message or 'Congratulations to the new winner!' }}"
+                        class="cursor-pointer transform hover:scale-[1.01] transition-all duration-300 relative bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 p-6 rounded-2xl shadow-lg group">
+
+                        <div class="absolute -top-3 -right-3 text-4xl animate-bounce-slow drop-shadow-lg z-20">👑</div>
+                        <div
+                            class="absolute top-0 left-0 h-full w-2 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-l-2xl">
+                        </div>
+
+                        <div class="flex items-center gap-6 relative z-10">
+                            <div class="relative">
+                                <img src="{{ c.photo or 'https://placehold.co/150' }}"
+                                    class="w-24 h-24 rounded-full object-cover border-4 border-yellow-400 shadow-md">
+                                <div
+                                    class="absolute -bottom-2 -right-2 bg-yellow-500 text-white font-bold text-xs px-2 py-1 rounded-full shadow">
+                                    WINNER</div>
+                            </div>
+                            <div class="flex-1">
+                                <h4
+                                    class="text-2xl font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">
+                                    {{ c.name }}</h4>
+                                <p class="text-yellow-700 italic">"{{ c.motto }}"</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-3xl font-bold text-yellow-600">{{ percent }}%</div>
+                                <div class="text-sm text-gray-500">{{ c.votes }} votes</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <!-- Standard Row -->
+                    <div
+                        class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md transition duration-300">
+                        <div class="w-8 text-center font-bold text-gray-400">#{{ rank }}</div>
+                        <img src="{{ c.photo or 'https://placehold.co/150' }}"
+                            class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
+                        <div class="flex-1">
+                            <h5 class="font-bold text-gray-800">{{ c.name }}</h5>
+                        </div>
+                        <div class="w-32">
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-gray-600 font-medium">{{ percent }}%</span>
+                                <span class="text-gray-400">{{ c.votes }}</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                {% set bar_color = 'bg-indigo-500' %}
+                                {% if rank == 2 %}{% set bar_color = 'bg-gray-400' %}{% endif %}
+                                {% if rank == 3 %}{% set bar_color = 'bg-orange-400' %}{% endif %}
+                                <div class="{{ bar_color }} h-full rounded-full" style="width: {{ percent }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
 
-    <div class="mt-8 flex justify-center items-center gap-2 text-xs text-slate-400">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <p>Percentage represents the share of total votes cast so far.</p>
-    </div>
+        {% else %}
+        <div class="text-center py-20 bg-white rounded-3xl border border-gray-200 shadow-sm">
+            <div class="text-6xl mb-4 grayscale opacity-30">📊</div>
+            <h3 class="text-xl text-gray-500">No election results available.</h3>
+        </div>
+        {% endif %}
 
+    </div>
 </div>
 
+<script>
+    function triggerCelebration(element) {
+        console.log("Trigger Celebration Clicked!");
+        // Safe data retrieval
+        const name = element.getAttribute('data-name');
+        console.log("Winner Name:", name);
+        const photo = element.getAttribute('data-photo');
+        const msg = element.getAttribute('data-msg');
+
+        // 1. Show Modal
+        const modal = document.getElementById('winnerModal');
+        const content = document.getElementById('modalContent');
+
+        document.getElementById('w_name').textContent = name;
+        document.getElementById('w_photo').src = photo || 'https://placehold.co/150';
+        document.getElementById('w_msg').textContent = msg;
+
+        modal.classList.remove('hidden', 'pointer-events-none');
+        // Small delay to allow display:block to apply before opacity transition
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-90');
+            content.classList.add('scale-100');
+        }, 10);
+
+        // 2. Fire Confetti
+        const duration = 3000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            confetti({
+                particleCount: 5,
+                angle: 60,
+                spread: 55,
+                origin: { x: 0 },
+                colors: ['#EAB308', '#F97316', '#3B82F6']
+            });
+            confetti({
+                particleCount: 5,
+                angle: 120,
+                spread: 55,
+                origin: { x: 1 },
+                colors: ['#EAB308', '#F97316', '#3B82F6']
+            });
+
+            if (Date.now() < end) {
+                requestAnimationFrame(frame);
+            }
+        }());
+    }
+
+    function closeWinnerModal() {
+        // ... (unchanged)
+        const modal = document.getElementById('winnerModal');
+        const content = document.getElementById('modalContent');
+        modal.classList.add('opacity-0');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-90');
+        setTimeout(() => {
+            modal.classList.add('hidden', 'pointer-events-none');
+        }, 300);
+    }
+</script>
+
 <style>
-  @keyframes bounce-slow {
-    0%, 100% { transform: translate(-50%, -5%); }
-    50% { transform: translate(-50%, 5%); }
-  }
-  .animate-bounce-slow {
-    animation: bounce-slow 2s infinite;
-  }
+    .animate-blob {
+        animation: blob 7s infinite;
+    }
+
+    .animation-delay-2000 {
+        animation-delay: 2s;
+    }
+
+    .animation-delay-4000 {
+        animation-delay: 4s;
+    }
+
+    @keyframes blob {
+        0% {
+            transform: translate(0px, 0px) scale(1);
+        }
+
+        33% {
+            transform: translate(30px, -50px) scale(1.1);
+        }
+
+        66% {
+            transform: translate(-20px, 20px) scale(0.9);
+        }
+
+        100% {
+            transform: translate(0px, 0px) scale(1);
+        }
+    }
+
+    @keyframes bounce-slow {
+
+        0%,
+        100% {
+            transform: translateY(-5%);
+        }
+
+        50% {
+            transform: translateY(5%);
+        }
+    }
+
+    .animate-bounce-slow {
+        animation: bounce-slow 2s infinite ease-in-out;
+    }
 </style>
 {% endblock %}
