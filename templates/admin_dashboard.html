@@ -113,68 +113,83 @@
 
     <!-- ELECTIONS LIST -->
     <h3 class="text-2xl font-bold mb-4 text-gray-800 dark-mode:text-white">Existing Elections</h3>
-    <div class="bg-white dark-mode:bg-gray-800 rounded-xl shadow overflow-hidden mb-12">
-        <table class="w-full text-left border-collapse">
-            <thead class="bg-indigo-900 text-white">
-                <tr>
-                    <th class="p-4 font-semibold">Title</th>
-                    <th class="p-4 font-semibold">Status</th>
-                    <th class="p-4 font-semibold">Timeline</th>
-                    <th class="p-4 font-semibold text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark-mode:divide-gray-700">
-                {% for e in elections %}
-                <tr class="hover:bg-gray-50 dark-mode:hover:bg-gray-700 transition">
-                    <td class="p-4">
-                        <div class="font-bold text-gray-800 dark-mode:text-white">{{ e.title }}</div>
-                        <div class="text-sm text-gray-500">{{ e.description }}</div>
-                    </td>
-                    <td class="p-4">
-                        {% if e.status == 'Active' %}
-                        <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            🟢 Active
-                        </span>
-                        {% elif e.status == 'Upcoming' %}
-                        <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            🔵 Upcoming
-                        </span>
-                        {% else %}
-                        <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            ⚫ Closed
-                        </span>
-                        {% endif %}
-                    </td>
-                    <td class="p-4 text-sm text-gray-600 dark-mode:text-gray-300">
-                        <div>Start: {{ e.start_time_display }}</div>
-                        <div>End: &nbsp; {{ e.end_time_display }}</div>
-                    </td>
-                    <td class="p-4 flex justify-center gap-2">
-                        <button onclick='openEditModal({{ e | tojson }})'
-                            class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition">
-                            Edit
-                        </button>
-                        <form action="/admin" method="POST"
-                            onsubmit="return confirm('Are you sure? This will delete all candidates and votes associated with this election.');">
-                            <input type="hidden" name="action" value="delete_election">
-                            <input type="hidden" name="election_id" value="{{ e.id }}">
-                            <button type="submit"
-                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition">
-                                Delete
+    <div
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow overflow-hidden mb-12 border border-gray-100 dark-mode:border-gray-700">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[600px]">
+                <thead class="bg-indigo-50 text-indigo-900 border-b border-indigo-100">
+                    <tr>
+                        <th class="p-4 font-semibold text-sm uppercase tracking-wider">Title</th>
+                        <th class="p-4 font-semibold text-sm uppercase tracking-wider">Status</th>
+                        <th class="p-4 font-semibold text-sm uppercase tracking-wider">Timeline</th>
+                        <th class="p-4 font-semibold text-center text-sm uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark-mode:divide-gray-700">
+                    {% for e in elections %}
+                    <tr class="hover:bg-indigo-50/30 dark-mode:hover:bg-gray-700 transition duration-150">
+                        <td class="p-4">
+                            <div class="font-bold text-gray-800 dark-mode:text-white">{{ e.title }}</div>
+                            <div class="text-sm text-gray-500">{{ e.description }}</div>
+                        </td>
+                        <td class="p-4">
+                            {% if e.status == 'Active' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-600 mr-1.5 animate-pulse"></span> Active
+                            </span>
+                            {% elif e.status == 'Upcoming' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1.5"></span> Upcoming
+                            </span>
+                            {% else %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+                                Closed
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-sm text-gray-600 dark-mode:text-gray-300">
+                            <div class="flex flex-col gap-1">
+                                <span class="flex items-center gap-1"><svg class="w-3 h-3 text-gray-400" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg> {{ e.start_time | replace('T', ' ') }}</span>
+                                <span class="flex items-center gap-1"><svg class="w-3 h-3 text-gray-400" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                        </path>
+                                    </svg> {{ e.end_time | replace('T', ' ') }}</span>
+                            </div>
+                        </td>
+                        <td class="p-4 flex gap-2 justify-center">
+                            <a href="/results?election_id={{ e.id }}"
+                                class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm transition-colors border border-indigo-200">
+                                Results
+                            </a>
+                            <button onclick='openEditModal({{ e | tojson | safe }})'
+                                class="text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-sm transition-colors border border-gray-200">
+                                Edit
                             </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="p-6 text-center text-gray-500">No elections found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% if not elections %}
+                    <tr class="text-center">
+                        <td colspan="4" class="p-8 text-gray-400 dark-mode:text-gray-400 italic">
+                            <div class="flex flex-col items-center">
+                                <span class="text-2xl mb-2 opacity-50">🗳️</span>
+                                <span>No elections found. Click "New Election" to start.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <!-- EDIT ELECTION MODAL -->
