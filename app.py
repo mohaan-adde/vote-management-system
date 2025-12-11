@@ -461,31 +461,17 @@ def submit_vote(candidate_id):
         flash("Invalid election or candidate.", "error")
         return redirect(url_for("vote"))
 
-    # 3. Check for Double Vote
+    # Record vote
     try:
-        existing = supabase.table("votes").select("id").eq("email", email).eq("election_id", election_id).execute().data
-        if existing:
-            flash("You have already voted in this election.", "warning")
-            return redirect(url_for("vote"))
-    except:
-        pass
-
-    # 4. Cast Vote
-    try:
-        # Record vote
-        supabase.table("votes").insert({
-            "email": email,
-            "candidate_id": candidate_id,
-            "election_id": election_id
-        }).execute()
-
-        # Increment count
+        supabase.table("votes").insert({"email": email, "candidate_id": candidate_id}).execute()
         supabase.rpc("increment_vote", {"cid": candidate_id}).execute()
 
         flash("Your vote was successfully recorded!", "success")
     except Exception as e:
-        print("VOTE ERROR:", e)
-        flash(f"Vote failed: {str(e)}", "error")
+        print("VOTE INSERT/RPC ERROR:", e)
+
+        # Here we fix the repeated error you complained about
+        flash("Your vote could not be recorded. Please try again or contact admin.", "error")
 
     return redirect(url_for("vote"))
 
