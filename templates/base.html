@@ -104,6 +104,31 @@
         font-size: 0.9rem;
       }
     }
+
+    /* Prevent horizontal scroll on mobile */
+    html,
+    body {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* Ensure tables are responsive */
+    table {
+      display: block;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Mobile-friendly inputs */
+    @media (max-width: 640px) {
+
+      input,
+      select,
+      textarea {
+        font-size: 16px !important;
+        /* Prevents zoom on iOS */
+      }
+    }
   </style>
 </head>
 

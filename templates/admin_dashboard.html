@@ -4,6 +4,190 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <h2 class="text-3xl font-bold text-center mb-8 text-gray-800 dark-mode:text-white">Admin Dashboard</h2>
 
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <!-- Students -->
+        <div
+            class="bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Total Students</p>
+                <h3 class="text-2xl font-bold text-gray-800 dark-mode:text-white mt-1">{{ profiles|length }}</h3>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-full text-blue-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <!-- Total Elections -->
+        <div
+            class="bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Total Elections</p>
+                <h3 class="text-2xl font-bold text-gray-800 dark-mode:text-white mt-1">{{ elections|length }}</h3>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-full text-purple-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <!-- Active Elections -->
+        <div
+            class="bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Active Now</p>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ active_elections|length }}</h3>
+            </div>
+            <div class="bg-emerald-100 p-3 rounded-full text-emerald-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+        </div>
+        <!-- Candidates -->
+        <div
+            class="bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Candidates</p>
+                <h3 class="text-2xl font-bold text-gray-800 dark-mode:text-white mt-1">{{ candidates|length }}</h3>
+            </div>
+            <div class="bg-orange-100 p-3 rounded-full text-orange-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <!-- Pending -->
+        <div
+            class="bg-white dark-mode:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wide">Pending Users</p>
+                <h3 class="text-2xl font-bold text-yellow-600 mt-1">{{ unverified_count }}</h3>
+            </div>
+            <div class="bg-yellow-100 p-3 rounded-full text-yellow-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                    </path>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK ACTIONS -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <button
+            onclick="document.getElementById('toggleFormBtn').click(); window.scrollTo({top: document.getElementById('toggleFormBtn').offsetTop - 100, behavior: 'smooth'});"
+            class="flex flex-col items-center justify-center p-4 bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group cursor-pointer">
+            <div
+                class="bg-indigo-100 group-hover:bg-indigo-600 text-indigo-600 group-hover:text-white p-3 rounded-full mb-2 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700 dark-mode:text-gray-200">New Election</span>
+        </button>
+
+        <a href="#usersSection"
+            class="flex flex-col items-center justify-center p-4 bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div
+                class="bg-emerald-100 group-hover:bg-emerald-600 text-emerald-600 group-hover:text-white p-3 rounded-full mb-2 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700 dark-mode:text-gray-200">Verify Users</span>
+        </a>
+
+        <a href="/results?election_id={{ active_elections[0].id if active_elections else '' }}"
+            class="flex flex-col items-center justify-center p-4 bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div
+                class="bg-purple-100 group-hover:bg-purple-600 text-purple-600 group-hover:text-white p-3 rounded-full mb-2 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z">
+                    </path>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700 dark-mode:text-gray-200">Live Results</span>
+        </a>
+
+        <button onclick="alert('Feature coming soon!')"
+            class="flex flex-col items-center justify-center p-4 bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow group">
+            <div
+                class="bg-gray-100 group-hover:bg-gray-600 text-gray-600 group-hover:text-white p-3 rounded-full mb-2 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
+            <span class="font-semibold text-gray-700 dark-mode:text-gray-200">Settings</span>
+        </button>
+    </div>
+
+    <!-- STUDENT IMPORT SECTION -->
+    <div
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-lg p-6 mb-8 border border-gray-100 dark-mode:border-gray-700">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800 dark-mode:text-white flex items-center gap-2">
+                📊 Import Students (Excel)
+            </h3>
+        </div>
+
+        <div class="bg-blue-50 dark-mode:bg-blue-900/20 border-l-4 border-blue-500 p-4 mb-4">
+            <p class="text-sm text-blue-800 dark-mode:text-blue-200">
+                <strong>Required Excel Columns:</strong> ID, Name, Phone
+            </p>
+            <p class="text-xs text-blue-700 dark-mode:text-blue-300 mt-1">
+                Only Student ID and Phone must be unique. Students will provide other details (Username, Email, Faculty,
+                Semester, Password) during registration.
+            </p>
+        </div>
+
+        <form action="/admin/upload-students" method="POST" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-2">
+                    Select Excel File (.xlsx or .xls)
+                </label>
+                <input type="file" name="student_file" accept=".xlsx,.xls" required class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 text-sm
+                           dark-mode:bg-gray-700 dark-mode:text-white
+                           file:mr-4 file:py-2 file:px-4 
+                           file:rounded-lg file:border-0
+                           file:text-sm file:font-semibold
+                           file:bg-indigo-50 file:text-indigo-700
+                           hover:file:bg-indigo-100">
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button type="submit"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-bold shadow-md transition-transform hover:scale-105 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                        </path>
+                    </svg>
+                    Import Students
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- TOP SECTION: CREATE NEW ELECTION -->
     <div
         class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-lg p-6 mb-8 border border-gray-100 dark-mode:border-gray-700">
@@ -112,12 +296,15 @@
     </div>
 
     <!-- ELECTIONS LIST -->
-    <h3 class="text-2xl font-bold mb-4 text-gray-800 dark-mode:text-white">Existing Elections</h3>
+    <h3 class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white flex items-center gap-2">
+        <span>🗳️</span> Active & Recent Elections
+    </h3>
     <div
-        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow overflow-hidden mb-12 border border-gray-100 dark-mode:border-gray-700">
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm overflow-hidden mb-12 border border-gray-100 dark-mode:border-gray-700">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse min-w-[600px]">
-                <thead class="bg-indigo-50 text-indigo-900 border-b border-indigo-100">
+                <thead
+                    class="bg-gray-50 dark-mode:bg-gray-700 text-gray-600 dark-mode:text-gray-200 border-b border-gray-100 dark-mode:border-gray-600">
                     <tr>
                         <th class="p-4 font-semibold text-sm uppercase tracking-wider">Title</th>
                         <th class="p-4 font-semibold text-sm uppercase tracking-wider">Status</th>
@@ -166,10 +353,15 @@
                             </div>
                         </td>
                         <td class="p-4 flex gap-2 justify-center">
-                            <a href="/results?election_id={{ e.id }}"
-                                class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-sm transition-colors border border-indigo-200">
-                                Results
-                            </a>
+                            <form action="/admin" method="POST"
+                                onsubmit="return confirm('Are you sure you want to delete this election?');">
+                                <input type="hidden" name="action" value="delete_election">
+                                <input type="hidden" name="election_id" value="{{ e.id }}">
+                                <button type="submit"
+                                    class="text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg text-sm transition-colors border border-red-200">
+                                    Delete
+                                </button>
+                            </form>
                             <button onclick='openEditModal({{ e | tojson | safe }})'
                                 class="text-gray-600 hover:text-gray-800 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg text-sm transition-colors border border-gray-200">
                                 Edit
@@ -194,9 +386,10 @@
 
     <!-- EDIT ELECTION MODAL -->
     <div id="editElectionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white dark-mode:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg">
+        <div
+            class="bg-white dark-mode:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <h3 class="text-xl font-bold mb-4 dark-mode:text-white">Edit Election</h3>
-            <form action="/admin" method="POST" class="space-y-4">
+            <form action="/admin" method="POST" class="space-y-4" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="edit_election">
                 <input type="hidden" name="election_id" id="edit_eid">
 
@@ -226,12 +419,13 @@
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium dark-mode:text-gray-300">Winner Message (Displayed on
-                        Results Page)</label>
-                    <textarea name="winner_message" id="edit_winner_message" rows="2"
-                        placeholder="e.g. Hambalyo Gudoomiye Cusub!"
-                        class="w-full border p-2 rounded bg-gray-50 dark-mode:bg-gray-700 dark-mode:text-white"></textarea>
+                <!-- NEW: Dynamic Candidates Container -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium dark-mode:text-gray-300 mb-2">Edit Candidates</label>
+                    <div id="edit_candidates_container"
+                        class="space-y-4 max-h-[300px] overflow-y-auto border p-2 rounded relative">
+                        <!-- JS injected here -->
+                    </div>
                 </div>
 
                 <div class="flex justify-end pt-4">
@@ -245,14 +439,27 @@
 
 
     <!-- VERIFICATION SECTION -->
-    <h3 class="text-2xl font-bold mb-4 text-gray-800 dark-mode:text-white mt-12">User Verification</h3>
+    <h3 id="usersSection"
+        class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white mt-12 flex items-center gap-2">
+        <span>👥</span> Student Registrations
+    </h3>
     <div class="bg-white dark-mode:bg-gray-800 rounded-xl shadow overflow-hidden">
         <div class="p-4 border-b border-gray-100 dark-mode:border-gray-700 flex justify-between items-center">
             <p class="text-gray-600 dark-mode:text-gray-300">
                 Unverified Users: <span class="font-bold text-yellow-600">{{ unverified_count }}</span>
             </p>
+            <form action="/admin/toggle_registration" method="POST" class="flex items-center gap-2">
+                <input type="hidden" name="status" value="{{ registration_open }}">
+                <span class="text-sm font-medium {{ 'text-green-600' if registration_open else 'text-red-500' }}">
+                    Status: {{ 'OPEN' if registration_open else 'CLOSED' }}
+                </span>
+                <button type="submit"
+                    class="text-xs px-3 py-1.5 rounded border border-gray-300 dark-mode:border-gray-600 hover:bg-gray-100 dark-mode:hover:bg-gray-700 transition">
+                    {{ 'Close Registration' if registration_open else 'Open Registration' }}
+                </button>
+            </form>
             <button type="submit" form="bulkVerifyForm"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition">
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded text-sm font-medium transition ml-2">
                 Verify Selected
             </button>
         </div>
@@ -264,8 +471,10 @@
                         <tr>
                             <th class="p-3 w-10 text-center"><input type="checkbox" onclick="toggleSelectAll(this)">
                             </th>
-                            <th class="p-3">Email</th>
+                            <th class="p-3">University ID</th>
                             <th class="p-3">Name</th>
+                            <th class="p-3">Email</th>
+                            <th class="p-3">Phone</th>
                             <th class="p-3">Status</th>
                             <th class="p-3">Actions</th>
                         </tr>
@@ -277,8 +486,12 @@
                                 <input type="checkbox" name="emails" value="{{ p.email }}" class="user-checkbox" {% if
                                     p.verified %}disabled{% endif %}>
                             </td>
-                            <td class="p-3 text-sm">{{ p.email }}</td>
+                            <td class="p-3 text-sm font-mono text-gray-600 dark-mode:text-gray-300">{{ p.university_id
+                                or 'N/A' }}</td>
                             <td class="p-3 text-sm">{{ p.name }}</td>
+                            <td class="p-3 text-sm">{{ p.email }}</td>
+                            <td class="p-3 text-sm font-mono text-gray-600 dark-mode:text-gray-300">{{ p.phone or 'N/A'
+                                }}</td>
                             <td class="p-3">
                                 {% if p.verified %}
                                 <span class="text-emerald-600 text-xs font-bold uppercase">Verified</span>
@@ -300,6 +513,95 @@
                 </table>
             </div>
         </form>
+    </div>
+
+    <!-- STUDENT REGISTRY (WHITELIST) MANAGEMENT -->
+    <h3 class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white mt-12 flex items-center gap-2">
+        <span>📋</span> Student Registry (Whitelist)
+    </h3>
+    <div class="bg-white dark-mode:bg-gray-800 rounded-xl shadow overflow-hidden">
+        <div class="p-4 border-b border-gray-100 dark-mode:border-gray-700">
+            <p class="text-gray-600 dark-mode:text-gray-300 text-sm">
+                Manage students imported from Excel. Total: <span class="font-bold text-indigo-600">{{
+                    student_registry|length }}</span>
+            </p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-100 dark-mode:bg-gray-900 text-gray-600 dark-mode:text-gray-400">
+                    <tr>
+                        <th class="p-3">University ID</th>
+                        <th class="p-3">Name</th>
+                        <th class="p-3">Phone</th>
+                        <th class="p-3">Registered</th>
+                        <th class="p-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark-mode:divide-gray-700">
+                    {% for entry in student_registry %}
+                    <tr class="hover:bg-gray-50 dark-mode:hover:bg-gray-700">
+                        <td class="p-3 text-sm font-mono text-gray-600 dark-mode:text-gray-300">{{ entry.university_id
+                            }}</td>
+                        <td class="p-3 text-sm">{{ entry.full_name }}</td>
+                        <td class="p-3 text-sm font-mono text-gray-600 dark-mode:text-gray-300">{{ entry.phone }}</td>
+                        <td class="p-3">
+                            {% if entry.is_registered %}
+                            <span class="text-emerald-600 text-xs font-bold">✓ Yes</span>
+                            {% else %}
+                            <span class="text-gray-400 text-xs">✗ No</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3 flex gap-2">
+                            <button type="button"
+                                onclick="openEditRegistryModal('{{ entry.id }}', '{{ entry.university_id }}', '{{ entry.full_name }}', '{{ entry.phone }}')"
+                                class="text-blue-600 hover:underline text-xs">Edit</button>
+                            <form action="/admin/registry/delete/{{ entry.id }}" method="POST" style="display:inline;"
+                                onsubmit="return confirm('Delete this registry entry?')">
+                                <button type="submit" class="text-red-500 hover:underline text-xs">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Edit Registry Modal -->
+    <div id="editRegistryModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white dark-mode:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold mb-4 dark-mode:text-white">Edit Registry Entry</h3>
+            <form id="editRegistryForm" method="POST">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-1">University
+                            ID</label>
+                        <input type="text" name="university_id" id="edit_registry_id" required
+                            class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 dark-mode:bg-gray-700 dark-mode:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-1">Full
+                            Name</label>
+                        <input type="text" name="full_name" id="edit_registry_name" required
+                            class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 dark-mode:bg-gray-700 dark-mode:text-white">
+                    </div>
+                    <div>
+                        <label
+                            class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-1">Phone</label>
+                        <input type="text" name="phone" id="edit_registry_phone" required
+                            class="w-full border border-gray-300 dark-mode:border-gray-600 rounded-lg px-3 py-2 dark-mode:bg-gray-700 dark-mode:text-white">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeEditRegistryModal()"
+                        class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold">Save</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Hidden Forms for Actions -->
@@ -354,20 +656,66 @@
         container.insertAdjacentHTML('beforeend', html);
     }
 
+    // --- DATA INJECTION ---
+    const ALL_CANDIDATES = {{ candidates | tojson | safe }};
+
     // --- EDIT ELECTION UI ---
     function openEditModal(election) {
         document.getElementById('edit_eid').value = election.id;
         document.getElementById('edit_title').value = election.title;
         document.getElementById('edit_desc').value = election.description || '';
-        document.getElementById('edit_winner_message').value = election.winner_message || '';
 
         const cleanISO = (str) => {
             if (!str) return '';
-            return str.replace('Z', '').split('.')[0]; // remove Z and milliseconds
+            return str.replace('Z', '').split('.')[0];
         };
 
         document.getElementById('edit_start').value = cleanISO(election.start_time);
         document.getElementById('edit_end').value = cleanISO(election.end_time);
+
+        // Filter candidates for this election
+        const electionCandidates = ALL_CANDIDATES.filter(c => c.election_id === election.id);
+        const candidatesContainer = document.getElementById('edit_candidates_container');
+        candidatesContainer.innerHTML = ''; // Clear previous
+
+        electionCandidates.forEach((c, index) => {
+            const html = `
+                <div class="p-4 border rounded-lg bg-gray-50 dark-mode:bg-gray-700 relative mb-4">
+                    <input type="hidden" name="edit_candidate_id[]" value="${c.id}">
+                    <span class="absolute top-2 right-2 text-xs font-bold text-gray-400">#${index + 1}</span>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Name</label>
+                            <input name="edit_candidate_name[]" value="${c.name}" class="w-full border p-2 rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Motto</label>
+                            <input name="edit_candidate_motto[]" value="${c.motto || ''}" class="w-full border p-2 rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Department</label>
+                            <input name="edit_candidate_dept[]" value="${c.department || ''}" class="w-full border p-2 rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Year</label>
+                            <input name="edit_candidate_year[]" value="${c.year_level || ''}" class="w-full border p-2 rounded text-sm">
+                        </div>
+                    </div>
+                    </div>
+                    <div class="space-y-2">
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Update Photo (Optional)</label>
+                            <input type="file" name="edit_candidate_photo_${c.id}" accept="image/*" class="w-full border p-2 rounded text-sm bg-white">
+                         </div>
+                         <div>
+                            <label class="block text-xs font-bold text-gray-500 mb-1">Bio</label>
+                            <textarea name="edit_candidate_bio[]" rows="2" class="w-full border p-2 rounded text-sm">${c.bio || ''}</textarea>
+                         </div>
+                    </div>
+                </div>
+            `;
+            candidatesContainer.insertAdjacentHTML('beforeend', html);
+        });
 
         document.getElementById('editElectionModal').classList.remove('hidden');
         document.getElementById('editElectionModal').classList.add('flex');
@@ -391,18 +739,29 @@
         });
     }
 
-    function singleVerify(email) {
-        if (confirm('Verify ' + email + '?')) {
-            document.getElementById('singleVerifyEmailInput').value = email;
-            document.getElementById('singleVerifyForm').submit();
-        }
-    }
-
     function confirmDelete(email) {
-        if (confirm('Delete ' + email + '?')) {
+        if (confirm('Are you sure you want to delete this user?')) {
             document.getElementById('deleteEmailInput').value = email;
             document.getElementById('deleteForm').submit();
         }
+    }
+
+    function singleVerify(email) {
+        document.getElementById('singleVerifyEmailInput').value = email;
+        document.getElementById('singleVerifyForm').submit();
+    }
+
+    // Registry modal functions
+    function openEditRegistryModal(id, universityId, fullName, phone) {
+        document.getElementById('edit_registry_id').value = universityId;
+        document.getElementById('edit_registry_name').value = fullName;
+        document.getElementById('edit_registry_phone').value = phone;
+        document.getElementById('editRegistryForm').action = `/admin/registry/edit/${id}`;
+        document.getElementById('editRegistryModal').classList.remove('hidden');
+    }
+
+    function closeEditRegistryModal() {
+        document.getElementById('editRegistryModal').classList.add('hidden');
     }
 </script>
 {% endblock %}

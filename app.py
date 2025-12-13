@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timezone
 from werkzeug.utils import secure_filename
 import time
+import pandas as pd
 
 app = Flask(__name__)
 # IMPORTANT: Replace the default secret key in a production environment
@@ -126,6 +127,24 @@ def handle_photo_upload(file, name, existing_photo=None):
         return existing_photo
 
 
+def get_election_status(election):
+    """Helper function to get election status (Active, Upcoming, or Closed)."""
+    from datetime import datetime, timezone
+    
+    try:
+        now = datetime.now(timezone.utc)
+        start = datetime.fromisoformat(election['start_time'].replace('Z', '+00:00'))
+        end = datetime.fromisoformat(election['end_time'].replace('Z', '+00:00'))
+        
+        if now < start:
+            return "Upcoming"
+        elif start <= now <= end:
+            return "Active"
+        else:
+            return "Closed"
+    except:
+        return "Unknown"
+
 # -------------------- HOME --------------------
 @app.route("/")
 def home():
@@ -177,27 +196,184 @@ def home():
         top_candidates=top_candidates,
     )
 
+# -------------------- REGISTRATION CONTROL --------------------
+def is_registration_open():
+    """Check if registration is currently open."""
+    try:
+        data = supabase.table("settings").select("registration_open").eq("id", 1).limit(1).single().execute().data
+        if data:
+            return data.get("registration_open", True)
+        return True # Default to open if no settings found
+    except:
+        return True
+
+@app.route("/admin/toggle_registration", methods=["POST"])
+def toggle_registration():
+    """Toggle registration status on/off."""
+    if 'user' not in session or session['user'] != "admin@gsu.edu":
+        return redirect(url_for("login"))
+        
+    current_status = request.form.get("status") == "True"
+    new_status = not current_status
+    
+    try:
+        exists = supabase.table("settings").select("id").eq("id", 1).execute().data
+        if exists:
+            supabase.table("settings").update({"registration_open": new_status}).eq("id", 1).execute()
+        else:
+            supabase.table("settings").insert({"id": 1, "registration_open": new_status}).execute()
+        
+        msg = "Registration is now OPEN." if new_status else "Registration is now CLOSED."
+        flash(msg, "success" if new_status else "warning")
+    except Exception as e:
+        flash(f"Error toggling registration: {e}", "error")
+        
+    return redirect(url_for("admin_dashboard"))
+
+# -------------------- STUDENT IMPORT --------------------
+@app.route("/admin/upload-students", methods=["POST"])
+def upload_students():
+    """Admin route to upload Excel file with student data."""
+    if 'user' not in session or session['user'] != "admin@gsu.edu":
+        flash("Admin access only.", "error")
+        return redirect(url_for("login"))
+    
+    if 'student_file' not in request.files:
+        flash("No file uploaded.", "error")
+        return redirect(url_for("admin_dashboard"))
+    
+    file = request.files['student_file']
+    
+    if file.filename == '':
+        flash("No file selected.", "error")
+        return redirect(url_for("admin_dashboard"))
+    
+    if not file.filename.endswith(('.xlsx', '.xls')):
+        flash("Please upload an Excel file (.xlsx or .xls).", "error")
+        return redirect(url_for("admin_dashboard"))
+    
+    try:
+        # Read Excel file
+        df = pd.read_excel(file)
+        
+        # Expected columns: ID, Name, Phone (simplified)
+        required_cols = ['ID', 'Name', 'Phone']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        
+        if missing_cols:
+            flash(f"Missing columns in Excel: {', '.join(missing_cols)}", "error")
+            return redirect(url_for("admin_dashboard"))
+        
+        # Clean data
+        df = df.dropna(subset=required_cols)  # Remove rows with missing required data
+        df['ID'] = df['ID'].astype(str).str.strip()
+        df['Name'] = df['Name'].astype(str).str.strip()
+        df['Phone'] = df['Phone'].astype(str).str.strip()
+        
+        # Check for duplicates within the file (only ID and Phone need to be unique)
+        if df['ID'].duplicated().any():
+            duplicates = df[df['ID'].duplicated()]['ID'].tolist()
+            flash(f"Warning: Duplicate IDs within file (will be skipped): {', '.join(duplicates[:5])}...", "warning")
+            # Remove duplicates within the file
+            df = df.drop_duplicates(subset=['ID'], keep='first')
+        
+        if df['Phone'].duplicated().any():
+            duplicates = df[df['Phone'].duplicated()]['Phone'].tolist()
+            flash(f"Warning: Duplicate Phones within file (will be skipped): {', '.join(duplicates[:5])}...", "warning")
+            # Remove duplicates within the file
+            df = df.drop_duplicates(subset=['Phone'], keep='first')
+        
+        # Get existing entries from database to skip them
+        existing_ids = set()
+        existing_phones = set()
+        try:
+            existing_data = supabase.table("student_registry").select("university_id, phone").execute().data
+            for item in existing_data:
+                existing_ids.add(item['university_id'])
+                existing_phones.add(item['phone'])
+        except:
+            pass  # If table is empty or error, continue
+        
+        # Insert into database (only new entries)
+        records = []
+        skipped_count = 0
+        for _, row in df.iterrows():
+            # Skip if ID or Phone already exists in database
+            if row['ID'] in existing_ids or row['Phone'] in existing_phones:
+                skipped_count += 1
+                continue
+                
+            records.append({
+                "university_id": row['ID'],
+                "full_name": row['Name'],
+                "phone": row['Phone'],
+                "is_registered": False
+            })
+        
+        if records:
+            # Batch insert only new records
+            supabase.table("student_registry").insert(records).execute()
+            flash(f"Successfully imported {len(records)} new students!", "success")
+        
+        if skipped_count > 0:
+            flash(f"Skipped {skipped_count} entries that already exist in database.", "info")
+        
+    except Exception as e:
+        print(f"[UPLOAD_STUDENTS] Error: {e}")
+        flash(f"Error importing students: {str(e)}", "error")
+    
+    return redirect(url_for("admin_dashboard"))
+
 # -------------------- REGISTER --------------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """User registration route."""
+    """User registration route with whitelist validation."""
+    
+    # 🛑 CHECK REGISTRATION STATUS
+    if not is_registration_open():
+        flash("Registration is currently closed. Please login.", "warning")
+        return redirect(url_for("login"))
+        
     if request.method == "POST":
-        first_name = request.form.get("first_name", "").strip()
-        last_name = request.form.get("last_name", "").strip()
-        name = request.form.get("name", "").strip()
-        if not name:
-            name = (first_name + " " + last_name).strip()
-
+        # Get form data
+        full_name = request.form.get("full_name", "").strip()
+        username = request.form.get("username", "").strip()
         university_id = request.form.get("university_id", "").strip()
+        phone = request.form.get("phone", "").strip()
         faculty = request.form.get("faculty", "").strip()
-        email = request.form["email"]
-        password = request.form["password"]
+        semester = request.form.get("semester", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
 
-        if not all([name, university_id, email, password]):
+        if not all([full_name, username, university_id, phone, faculty, semester, email, password]):
              flash("Please fill out all required fields.", "error")
              return redirect(url_for("register"))
 
-        # 🛑 1. Check if University ID is already used
+        # 🛑 1. Check if student is in the allowed registry (only ID and Phone)
+        try:
+            registry_check = supabase.table("student_registry")\
+                .select("*")\
+                .eq("university_id", university_id)\
+                .eq("phone", phone)\
+                .execute()
+            
+            if not registry_check.data:
+                flash("Your University ID and Phone number are not in the student registry. Please contact administration.", "error")
+                return redirect(url_for("register"))
+            
+            registry_entry = registry_check.data[0]
+            
+            # Check if already registered
+            if registry_entry.get('is_registered', False):
+                flash("This student has already registered. Please login.", "warning")
+                return redirect(url_for("login"))
+                
+        except Exception as e:
+            print(f"Error checking student registry: {e}")
+            flash("Database error during validation.", "error")
+            return redirect(url_for("register"))
+
+        # 🛑 2. Check if University ID is already used in profiles
         try:
             existing_id = supabase.table("profiles").select("id").eq("university_id", university_id).execute()
             if existing_id.data:
@@ -209,19 +385,26 @@ def register():
             return redirect(url_for("register"))
 
         try:
-            # 2. Create user via Auth
+            # 3. Create user via Auth
             response = supabase.auth.sign_up({"email": email, "password": password})
 
-            # 3. Save profile data
+            # 4. Save profile data
             supabase.table("profiles").insert({
                 "email": email,
-                "name": name,
+                "name": full_name,
                 "faculty": faculty,
                 "university_id": university_id,
-                "verified": False # User needs admin verification
+                "phone": phone,  # Store phone for easy admin access
+                "verified": True  # Auto-verify since they're in the registry
             }).execute()
+            
+            # 5. Mark as registered in registry
+            supabase.table("student_registry")\
+                .update({"is_registered": True})\
+                .eq("university_id", university_id)\
+                .execute()
 
-            flash("Registration successful. Check your email for confirmation (if email confirmation is enabled on Supabase). Your account is now pending admin verification.", "success")
+            flash("Registration successful! You can now login.", "success")
             return redirect(url_for("login"))
 
         except Exception as e:
@@ -463,7 +646,7 @@ def submit_vote(candidate_id):
 
     # Record vote
     try:
-        supabase.table("votes").insert({"email": email, "candidate_id": candidate_id}).execute()
+        supabase.table("votes").insert({"email": email, "candidate_id": candidate_id, "election_id": election_id}).execute()
         supabase.rpc("increment_vote", {"cid": candidate_id}).execute()
 
         flash("Your vote was successfully recorded!", "success")
@@ -509,7 +692,15 @@ def results():
         print(f"RESULTS LOAD ERROR: {e}")
         flash("Unable to load results.", "error")
 
-    return render_template('results.html', results_by_election=results_by_election)
+
+    total_registered = 0
+    try:
+        # Get total registered users for percentage calculation
+        total_registered = supabase.table("profiles").select("id", count="exact").execute().count
+    except Exception:
+        total_registered = 0
+
+    return render_template('results.html', results_by_election=results_by_election, total_registered=total_registered)
 
 
 @app.route("/admin", methods=["GET", "POST"])
@@ -600,15 +791,46 @@ def admin_dashboard():
             end_input = request.form.get("end_time", "").strip()
             
             try:
+                # 1. Update Election Details
                 supabase.table("elections").update({
                     "title": title,
                     "description": request.form.get("description", ""),
                     "start_time": start_input,
-                    "end_time": end_input,
-                    "winner_message": request.form.get("winner_message", "")
+                    "end_time": end_input
                 }).eq("id", eid).execute()
 
-                flash("Election updated!", "success")
+                # 2. Update Candidates (Batch or Loop)
+                # We expect lists of data from the dynamic form
+                c_ids = request.form.getlist("edit_candidate_id[]")
+                c_names = request.form.getlist("edit_candidate_name[]")
+                c_mottos = request.form.getlist("edit_candidate_motto[]")
+                c_depts = request.form.getlist("edit_candidate_dept[]")
+                c_years = request.form.getlist("edit_candidate_year[]")
+                c_bios = request.form.getlist("edit_candidate_bio[]")
+
+                # Iterate and update each
+                for i in range(len(c_ids)):
+                    cid = c_ids[i]
+                    if cid:
+                        update_data = {
+                            "name": c_names[i] if i < len(c_names) else "",
+                            "motto": c_mottos[i] if i < len(c_mottos) else "",
+                            "department": c_depts[i] if i < len(c_depts) else "",
+                            "year_level": c_years[i] if i < len(c_years) else "",
+                            "bio": c_bios[i] if i < len(c_bios) else ""
+                        }
+
+                        # Check if a new photo was uploaded for this candidate
+                        key = f"edit_candidate_photo_{cid}"
+                        photo = request.files.get(key)
+                        if photo and photo.filename:
+                             new_url = handle_photo_upload(photo)
+                             if new_url:
+                                 update_data['photo'] = new_url
+
+                        supabase.table("candidates").update(update_data).eq("id", cid).execute()
+
+                flash("Election and candidates updated successfully!", "success")
             except Exception as e:
                 flash(f"Error updating election: {e}", "error")
             return redirect(url_for("admin_dashboard"))
@@ -706,15 +928,30 @@ def admin_dashboard():
 
     profiles = supabase.table("profiles").select("*").execute().data or []
     unverified_count = sum(1 for p in profiles if not p.get("verified"))
+    
+    # Fetch student registry (whitelist)
+    student_registry = supabase.table("student_registry").select("*").order("created_at", desc=True).execute().data or []
+
+    # Fetch global settings
+    registration_open = True
+    try:
+        sett = supabase.table("settings").select("registration_open").eq("id", 1).single().execute().data
+        if sett:
+            registration_open = sett.get("registration_open", True)
+    except: pass
 
     return render_template(
         "admin_dashboard.html",
         elections=elections_data,
-        active_elections=active_elections,
+        all_elections=elections_data,
+        active_elections=active_elections,  # Pass active elections for counter
         candidates=candidates,
         voters=voters_list,
         profiles=profiles,
-        unverified_count=unverified_count
+        student_registry=student_registry,  # Pass registry data
+        unverified_count=unverified_count,
+        registration_open=registration_open,
+        election_status=get_election_status  # Pass the function to template
     )
 
 
@@ -771,15 +1008,60 @@ def delete_user():
         return redirect(url_for('admin_dashboard'))
 
     try:
-        # Supabase delete: Remove the user from profiles table
+        # Delete from all related tables
+        # 1. Delete votes
+        supabase.table("votes").delete().eq("email", email).execute()
+        
+        # 2. Delete from profiles
         supabase.table("profiles").delete().eq("email", email).execute()
         
-        flash(f'User {email} deleted successfully.', 'success')
+        # 3. Mark as unregistered in student_registry (don't delete the whitelist entry)
+        supabase.table("student_registry").update({"is_registered": False}).eq("email", email).execute()
+        
+        flash(f'User {email} deleted successfully from all records.', 'success')
     except Exception as e:
         flash(f'Error deleting user: {str(e)}', 'error')
         print(f"Delete Error: {e}")
 
     return redirect(url_for('admin_dashboard'))
+
+# -------------------- REGISTRY MANAGEMENT --------------------
+@app.route("/admin/registry/delete/<registry_id>", methods=["POST"])
+def delete_registry_entry(registry_id):
+    """Delete an entry from student registry."""
+    if 'user' not in session or session['user'] != "admin@gsu.edu":
+        return redirect(url_for("login"))
+    
+    try:
+        supabase.table("student_registry").delete().eq("id", registry_id).execute()
+        flash("Registry entry deleted successfully.", "success")
+    except Exception as e:
+        flash(f"Error deleting registry entry: {e}", "error")
+    
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/admin/registry/edit/<registry_id>", methods=["POST"])
+def edit_registry_entry(registry_id):
+    """Edit an entry in student registry."""
+    if 'user' not in session or session['user'] != "admin@gsu.edu":
+        return redirect(url_for("login"))
+    
+    try:
+        university_id = request.form.get("university_id", "").strip()
+        full_name = request.form.get("full_name", "").strip()
+        phone = request.form.get("phone", "").strip()
+        
+        supabase.table("student_registry").update({
+            "university_id": university_id,
+            "full_name": full_name,
+            "phone": phone
+        }).eq("id", registry_id).execute()
+        
+        flash("Registry entry updated successfully.", "success")
+    except Exception as e:
+        flash(f"Error updating registry entry: {e}", "error")
+    
+    return redirect(url_for("admin_dashboard"))
 
 # -------------------- DELETE CANDIDATE --------------------
 @app.route("/admin/delete/<int:candidate_id>")
@@ -839,30 +1121,6 @@ def edit_candidate(candidate_id):
     except Exception as e:
         flash(f"Could not update candidate: {str(e)}", "error")
         print("[EDIT_CANDIDATE] Error updating candidate:", repr(e))
-    return redirect(url_for("admin_dashboard"))
-
-
-# -------------------- VERIFY USER (ADMIN) --------------------
-@app.route("/admin/verify", methods=["POST"])
-def admin_verify_user():
-    """Admin route to mark a user as verified."""
-    if 'user' not in session or session['user'] != "admin@gsu.edu":
-        flash("Admin access only.", "error")
-        return redirect(url_for("login"))
-        
-    email = request.form.get("email")
-    
-    if not email:
-        flash("No email provided for verification.", "error")
-        return redirect(url_for("admin_dashboard"))
-        
-    try:
-        # Update the 'verified' column in the profiles table
-        supabase.table("profiles").update({"verified": True}).eq("email", email).execute()
-        flash(f"User {email} verified successfully.", "success")
-    except Exception as e:
-        flash(f"Failed to verify user: {str(e)}", "error")
-        
     return redirect(url_for("admin_dashboard"))
 
 

@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <div class="flex items-center justify-between mb-8">
+        <h2 class="text-3xl font-bold text-gray-800 dark-mode:text-white">System Settings</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <!-- 1. SYSTEM INFORMATION -->
+    <div
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 p-6 mb-6">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white border-b pb-2 flex items-center gap-2">
+            <span>🏫</span> System Information
+        </h3>
+        <form action="/admin/settings/update_info" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-1">University
+                    Name</label>
+                <input type="text" name="university_name"
+                    value="{{ settings.get('university_name', 'East Africa University') }}"
+                    class="w-full border p-2.5 rounded-lg bg-gray-50 dark-mode:bg-gray-700 text-gray-900 dark-mode:text-white focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+            <button type="submit"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">
+                Save Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- 2. MAINTENANCE MODE -->
+    <div
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 p-6 mb-6">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white border-b pb-2 flex items-center gap-2">
+            <span>🛠️</span> Maintenance
+        </h3>
+        <form action="/admin/settings/toggle_maintenance" method="POST">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="font-medium text-gray-800 dark-mode:text-white">Maintenance Mode</p>
+                    <p class="text-sm text-gray-500 dark-mode:text-gray-400">If enabled, only Admins can log in and
+                        vote.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="maintenance_mode" class="sr-only peer" onchange="this.form.submit()" {%
+                        if settings.get('maintenance_mode') %}checked{% endif %}>
+                    <div
+                        class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600">
+                    </div>
+                </label>
+            </div>
+        </form>
+    </div>
+
+    <!-- 3. SECURITY -->
+    <div
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 p-6 mb-6">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white border-b pb-2 flex items-center gap-2">
+            <span>🔒</span> Admin Security
+        </h3>
+        <form action="/admin/settings/change_password" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark-mode:text-gray-300 mb-1">New Password</label>
+                <input type="password" name="new_password" placeholder="Min 6 chars" required
+                    class="w-full border p-2.5 rounded-lg bg-gray-50 dark-mode:bg-gray-700 text-gray-900 dark-mode:text-white focus:ring-2 focus:ring-emerald-500 outline-none">
+            </div>
+            <button type="submit"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition shadow-sm">
+                Update Password
+            </button>
+        </form>
+    </div>
+
+    <!-- 4. DATA MANAGEMENT -->
+    <div
+        class="bg-white dark-mode:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark-mode:border-gray-700 p-6 mb-6 border-l-4 border-l-red-500">
+        <h3 class="text-xl font-bold mb-4 text-gray-800 dark-mode:text-white border-b pb-2 flex items-center gap-2">
+            <span>⚠️</span> Data Management
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Reset -->
+            <div
+                class="p-4 bg-red-50 dark-mode:bg-red-900/10 rounded-lg border border-red-100 dark-mode:border-red-800">
+                <h4 class="font-bold text-red-700 dark-mode:text-red-400 mb-2">Reset Election Database</h4>
+                <p class="text-sm text-red-600 dark-mode:text-red-300 mb-4">
+                    Deleting all <strong>Votes, Candidates, and Elections</strong>. User profiles will NOT be deleted.
+                    This action cannot be undone.
+                </p>
+                <form action="/admin/reset_data" method="POST"
+                    onsubmit="return confirm('Are you sure you want to nuke the database?');">
+                    <input type="text" name="confirm_text" placeholder="Type CONFIRM-RESET" required
+                        class="w-full border p-2 rounded bg-white text-sm mb-2 outline-none border-red-200 text-red-600 placeholder-red-300">
+                    <button type="submit"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-bold text-sm">
+                        ⚠️ Reset Data
+                    </button>
+                </form>
+            </div>
+
+            <!-- Export -->
+            <div
+                class="p-4 bg-blue-50 dark-mode:bg-blue-900/10 rounded-lg border border-blue-100 dark-mode:border-blue-800 flex flex-col justify-between">
+                <div>
+                    <h4 class="font-bold text-blue-700 dark-mode:text-blue-400 mb-2">Export Data Backup</h4>
+                    <p class="text-sm text-blue-600 dark-mode:text-blue-300 mb-4">
+                        Download a complete JSON dump of all elections, candidates, and votes for safekeeping.
+                    </p>
+                </div>
+                <a href="/admin/export_data" target="_blank"
+                    class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-bold text-sm">
+                    💾 Export JSON
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

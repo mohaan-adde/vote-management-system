@@ -1,133 +1,183 @@
 {% extends "base.html" %}
 
-{% block title %}Results | Official{% endblock %}
+{% block title %}Election Results{% endblock %}
 
 {% block content %}
-<!-- Confetti Library -->
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<div class="min-h-screen bg-gray-50 font-sans text-gray-800 py-10 px-4">
 
-<div class="min-h-screen bg-gray-50 font-sans py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
+    <!-- MAIN CONTAINER -->
+    <div class="max-w-3xl mx-auto space-y-12">
 
-    <!-- Background Decor (Gradient Blobs - Light Version) -->
-    <div
-        class="absolute top-0 left-0 w-96 h-96 bg-indigo-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob">
-    </div>
-    <div
-        class="absolute top-0 right-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000">
-    </div>
-    <div
-        class="absolute -bottom-32 left-20 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000">
-    </div>
-
-    <div class="max-w-7xl mx-auto relative z-10">
-
-        <div class="text-center mb-16">
-            <h2 class="text-5xl font-extrabold text-gray-900 mb-4 drop-shadow-sm tracking-tight">
-                Election Results
-            </h2>
-            <p class="text-gray-600 text-lg font-medium">Live Updates & Official Count</p>
+        <!-- PAGE HEADER -->
+        <div class="flex items-center gap-3 border-b-2 border-indigo-900 pb-4 mb-8">
+            <span class="text-3xl">🏆</span>
+            <h1 class="text-2xl font-bold text-gray-900">Election Results</h1>
         </div>
 
         {% if results_by_election %}
-        <div class="space-y-20">
-            {% for item in results_by_election %}
-            {% set election = item.election %}
-            {% set candidates = item.candidates %}
-            {% set total_votes = candidates | sum(attribute='votes') %}
-            {% set winner = candidates[0] if candidates else None %}
-            {% set is_closed = (election.status == 'Closed') or (election.status != 'Upcoming' and election.status !=
-            'Active') %}
+        {% for item in results_by_election %}
+        {% set election = item.election %}
+        {% set candidates = item.candidates %}
+        {% set total_votes = candidates | sum(attribute='votes') %}
+        {% set is_closed = (election.status == 'Closed') %}
 
-            <!-- ELECTION CARD -->
-            <div class="bg-white rounded-3xl border border-gray-200 shadow-xl overflow-hidden">
-
-                <!-- Header -->
-                <div
-                    class="p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center bg-gray-50/50">
-                    <div>
-                        <h3 class="text-3xl font-bold text-gray-900 mb-2">{{ election.title }}</h3>
-                        <p class="text-gray-500">{{ election.description }}</p>
-                    </div>
-                    <div class="mt-4 md:mt-0 text-right">
-                        {% if is_closed %}
-                        <span
-                            class="px-4 py-1 rounded-full bg-red-100 text-red-600 text-sm font-bold border border-red-200">CLOSED</span>
-                        {% else %}
-                        <span
-                            class="px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold border border-green-200 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-green-600 animate-pulse"></span> LIVE
-                        </span>
-                        {% endif %}
-                        <div class="mt-2 text-2xl font-mono text-indigo-600 font-bold">{{ total_votes }} Votes</div>
-                    </div>
-                </div>
-
-                <!-- Candidates List -->
-                <div class="p-8 space-y-6">
-                    {% for c in candidates %}
-                    {% set rank = loop.index %}
-                    {% set percent = ((c.votes / total_votes * 100) | round(1)) if total_votes > 0 else 0 %}
-
-                    <!-- Winner Row (Highlight) -->
-                    {% if rank == 1 and is_closed %}
-                    <div onclick="triggerCelebration(this)" data-name="{{ c.name }}" data-photo="{{ c.photo }}"
-                        data-msg="{{ election.winner_message or 'Congratulations to the new winner!' }}"
-                        class="cursor-pointer transform hover:scale-[1.01] transition-all duration-300 relative bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 p-6 rounded-2xl shadow-lg group">
-
-                        <div class="absolute -top-3 -right-3 text-4xl animate-bounce-slow drop-shadow-lg z-20">👑</div>
-                        <div
-                            class="absolute top-0 left-0 h-full w-2 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-l-2xl">
-                        </div>
-
-                        <div class="flex items-center gap-6 relative z-10">
-                            <div class="relative">
-                                <img src="{{ c.photo or 'https://placehold.co/150' }}"
-                                    class="w-24 h-24 rounded-full object-cover border-4 border-yellow-400 shadow-md">
-                                <div
-                                    class="absolute -bottom-2 -right-2 bg-yellow-500 text-white font-bold text-xs px-2 py-1 rounded-full shadow">
-                                    WINNER</div>
-                            </div>
-                            <div class="flex-1">
-                                <h4
-                                    class="text-2xl font-bold text-gray-900 group-hover:text-yellow-700 transition-colors">
-                                    {{ c.name }}</h4>
-                                <p class="text-yellow-700 italic">"{{ c.motto }}"</p>
-                            </div>
-                            <div class="text-right">
-                                <div class="text-3xl font-bold text-yellow-600">{{ percent }}%</div>
-                                <div class="text-sm text-gray-500">{{ c.votes }} votes</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% else %}
-                    <!-- Standard Row -->
-                    <div
-                        class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white hover:shadow-md transition duration-300">
-                        <div class="w-8 text-center font-bold text-gray-400">#{{ rank }}</div>
-                        <img src="{{ c.photo or 'https://placehold.co/150' }}"
-                            class="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm">
-                        <div class="flex-1">
-                            <h5 class="font-bold text-gray-800">{{ c.name }}</h5>
-                        </div>
-                        <div class="w-32">
-                            <div class="flex justify-between text-xs mb-1">
-                                <span class="text-gray-600 font-medium">{{ percent }}%</span>
-                                <span class="text-gray-400">{{ c.votes }}</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                                {% set bar_color = 'bg-indigo-500' %}
-                                {% if rank == 2 %}{% set bar_color = 'bg-gray-400' %}{% endif %}
-                                {% if rank == 3 %}{% set bar_color = 'bg-orange-400' %}{% endif %}
-                                <div class="{{ bar_color }} h-full rounded-full" style="width: {{ percent }}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
+        <div class="mb-12">
+            <!-- Election Title -->
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-gray-800">{{ election.title }}</h2>
+                <p class="text-gray-500 text-sm">{{ election.description }}</p>
             </div>
-            {% endfor %}
+
+            <div class="space-y-6">
+                {% for c in candidates %}
+                {% set rank = loop.index %}
+                <!-- Logic: Use Total Votes for candidate share (Standard) -->
+                {% set denominator = total_votes %}
+
+                <!-- Avoid division by zero -->
+                {% set percent = ((c.votes / denominator * 100) | round(2)) if denominator > 0 else 0 %}
+
+                <!-- COLORS based on Rank/Position to match image -->
+                <!-- Rank 1: Blue/Gold theme (Winner) -->
+                <!-- Rank 2: Teal/Green theme -->
+                <!-- Rank 3: Yellow/Orange theme -->
+                <!-- Others: Gray -->
+
+                {% if rank == 1 %}
+                <!-- WINNER CARD -->
+                <div class="bg-white rounded-2xl shadow-sm border-2 border-amber-400 p-6 relative overflow-hidden">
+
+                    <!-- Winner Pill -->
+                    <div
+                        class="inline-block bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-4 shadow-sm">
+                        ♛ Election Winner
+                    </div>
+
+                    <!-- Name -->
+                    <h3 class="text-2xl font-black text-gray-900 mb-1">{{ c.name }}</h3>
+                    <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-6">
+                        DEPT: {{ c.department or 'N/A' }}
+                    </p>
+
+                    <!-- Stats Grid -->
+                    <div class="flex items-center gap-8 mb-4">
+                        <!-- Votes -->
+                        <div>
+                            <div class="text-3xl font-bold text-blue-700">{{ c.votes }}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Votes</div>
+                        </div>
+                        <!-- Percent -->
+                        <div>
+                            <div class="text-3xl font-bold text-emerald-500">{{ percent }}%</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Of Total Votes
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar (Blue) -->
+                    <div class="w-full bg-blue-50 h-6 rounded-full relative">
+                        <div class="h-full bg-blue-600 rounded-full flex items-center justify-end px-1"
+                            style="width: {{ percent }}%">
+                            {% if percent > 5 %}
+                            <span
+                                class="text-[10px] font-bold text-white bg-blue-700 px-2 py-0.5 rounded-full shadow-sm">{{
+                                percent }}%</span>
+                            {% endif %}
+                        </div>
+                        {% if percent <= 5 %} <span class="absolute left-2 top-1 text-[10px] font-bold text-blue-700">{{
+                            percent }}%</span>
+                            {% endif %}
+                    </div>
+
+                </div>
+
+                {% elif rank == 2 %}
+                <!-- SECOND PLACE (Teal/Green) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-1">{{ c.name }}</h3>
+                    <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-6">
+                        DEPT: {{ c.department or 'N/A' }}
+                    </p>
+
+                    <div class="flex items-center gap-8 mb-4">
+                        <div>
+                            <div class="text-2xl font-bold text-teal-500">{{ c.votes }}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Votes</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-teal-600">{{ percent }}%</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Of Total Votes
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-teal-50 h-5 rounded-full relative">
+                        <div class="h-full bg-teal-500 rounded-full flex items-center justify-end px-1"
+                            style="width: {{ percent }}%">
+                            {% if percent > 5 %}
+                            <span class="text-[10px] font-bold text-white bg-teal-600 px-2 py-0.5 rounded-full">{{
+                                percent }}%</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% elif rank == 3 %}
+                <!-- THIRD PLACE (Yellow/Orange) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-1">{{ c.name }}</h3>
+                    <p class="text-gray-400 text-xs font-medium uppercase tracking-wide mb-6">
+                        DEPT: {{ c.department or 'N/A' }}
+                    </p>
+
+                    <div class="flex items-center gap-8 mb-4">
+                        <div>
+                            <div class="text-2xl font-bold text-yellow-500">{{ c.votes }}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Votes</div>
+                        </div>
+                        <div>
+                            <div class="text-2xl font-bold text-yellow-600">{{ percent }}%</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Of Total Votes
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-yellow-50 h-5 rounded-full relative">
+                        <div class="h-full bg-yellow-500 rounded-full flex items-center justify-end px-1"
+                            style="width: {{ percent }}%">
+                            {% if percent > 5 %}
+                            <span class="text-[10px] font-bold text-white bg-yellow-600 px-2 py-0.5 rounded-full">{{
+                                percent }}%</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <!-- OTHERS (Gray) -->
+                <div
+                    class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 opacity-80 hover:opacity-100 transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-700 mb-1">{{ c.name }}</h3>
+                            <p class="text-gray-400 text-xs uppercase">{{ c.department or 'General' }}</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xl font-bold text-gray-600">{{ c.votes }}</div>
+                            <div class="text-xs text-gray-400">{{ percent }}%</div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-100 h-3 rounded-full mt-4">
+                        <div class="h-full bg-gray-400 rounded-full" style="width: {{ percent }}%"></div>
+                    </div>
+                </div>
+
+                {% endif %}
+
+                {% endfor %}
+            </div>
         </div>
+        {% endfor %}
 
         {% else %}
         <div class="text-center py-20 bg-white rounded-3xl border border-gray-200 shadow-sm">
@@ -138,116 +188,4 @@
 
     </div>
 </div>
-
-<script>
-    function triggerCelebration(element) {
-        console.log("Trigger Celebration Clicked!");
-        // Safe data retrieval
-        const name = element.getAttribute('data-name');
-        console.log("Winner Name:", name);
-        const photo = element.getAttribute('data-photo');
-        const msg = element.getAttribute('data-msg');
-
-        // 1. Show Modal
-        const modal = document.getElementById('winnerModal');
-        const content = document.getElementById('modalContent');
-
-        document.getElementById('w_name').textContent = name;
-        document.getElementById('w_photo').src = photo || 'https://placehold.co/150';
-        document.getElementById('w_msg').textContent = msg;
-
-        modal.classList.remove('hidden', 'pointer-events-none');
-        // Small delay to allow display:block to apply before opacity transition
-        setTimeout(() => {
-            modal.classList.remove('opacity-0');
-            content.classList.remove('scale-90');
-            content.classList.add('scale-100');
-        }, 10);
-
-        // 2. Fire Confetti
-        const duration = 3000;
-        const end = Date.now() + duration;
-
-        (function frame() {
-            confetti({
-                particleCount: 5,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: ['#EAB308', '#F97316', '#3B82F6']
-            });
-            confetti({
-                particleCount: 5,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: ['#EAB308', '#F97316', '#3B82F6']
-            });
-
-            if (Date.now() < end) {
-                requestAnimationFrame(frame);
-            }
-        }());
-    }
-
-    function closeWinnerModal() {
-        // ... (unchanged)
-        const modal = document.getElementById('winnerModal');
-        const content = document.getElementById('modalContent');
-        modal.classList.add('opacity-0');
-        content.classList.remove('scale-100');
-        content.classList.add('scale-90');
-        setTimeout(() => {
-            modal.classList.add('hidden', 'pointer-events-none');
-        }, 300);
-    }
-</script>
-
-<style>
-    .animate-blob {
-        animation: blob 7s infinite;
-    }
-
-    .animation-delay-2000 {
-        animation-delay: 2s;
-    }
-
-    .animation-delay-4000 {
-        animation-delay: 4s;
-    }
-
-    @keyframes blob {
-        0% {
-            transform: translate(0px, 0px) scale(1);
-        }
-
-        33% {
-            transform: translate(30px, -50px) scale(1.1);
-        }
-
-        66% {
-            transform: translate(-20px, 20px) scale(0.9);
-        }
-
-        100% {
-            transform: translate(0px, 0px) scale(1);
-        }
-    }
-
-    @keyframes bounce-slow {
-
-        0%,
-        100% {
-            transform: translateY(-5%);
-        }
-
-        50% {
-            transform: translateY(5%);
-        }
-    }
-
-    .animate-bounce-slow {
-        animation: bounce-slow 2s infinite ease-in-out;
-    }
-</style>
 {% endblock %}
